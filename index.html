@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="BrainrotGames — play free HTML5 games online. Discover action, arcade, puzzle, racing and more.">
+  <meta name="theme-color" content="#111827">
+  <title>BrainrotGames — Free Online Games</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/" aria-label="BrainrotGames home">
+        <span class="brand-mark">BG</span>
+        <span>Brainrot<span>Games</span></span>
+      </a>
+      <nav>
+        <a href="#games">Games</a>
+        <a href="#categories">Categories</a>
+      </nav>
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Search games..." autocomplete="off">
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container hero-inner">
+        <div>
+          <p class="eyebrow">PLAY • DISCOVER • REPEAT</p>
+          <h1>Free games.<br><span>Zero boredom.</span></h1>
+          <p class="hero-copy">Play browser games instantly on BrainrotGames. No downloads, no installs.</p>
+          <a class="cta" href="#games">Explore games</a>
+        </div>
+        <div class="hero-card" aria-hidden="true">
+          <div class="hero-orb orb-a"></div>
+          <div class="hero-orb orb-b"></div>
+          <div class="hero-game">🎮</div>
+          <div class="hero-caption">HTML5 GAMES</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="container section" id="categories">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">BROWSE</p>
+          <h2>Categories</h2>
+        </div>
+        <button class="ghost-btn" id="clear-filter" hidden>Clear filter</button>
+      </div>
+      <div class="category-row" id="category-row">
+        <button class="category active" data-category="All">All</button>
+      </div>
+    </section>
+
+    <section class="container section" id="games">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">GAME LIBRARY</p>
+          <h2 id="games-title">Top games</h2>
+        </div>
+        <span class="status" id="status">Loading…</span>
+      </div>
+      <div class="game-grid" id="game-grid"></div>
+      <div class="load-more-wrap">
+        <button class="cta secondary" id="load-more">Load more</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <div><strong>BrainrotGames</strong><br><span>Free browser games.</span></div>
+      <div class="footer-links">
+        <a href="/">Home</a>
+        <a href="#games">Games</a>
+        <a href="#categories">Categories</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

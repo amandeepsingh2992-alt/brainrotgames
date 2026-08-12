@@ -30,7 +30,7 @@ function normalizeGame(g) {
     title: g.title ?? "Untitled game",
     description: g.description ?? "",
     category: g.category ?? "Other",
-    image: g.banner_image || g.image || "",
+    image: g.thumbnailUrl || g.thumbnailUrl100 || g.banner_image || g.image || "",
     url: g.url || g.game_url || "",
     width: g.width,
     height: g.height

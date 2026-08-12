@@ -30,7 +30,7 @@ function normalizeGame(g) {
     title: g.title ?? "Untitled game",
     description: g.description ?? "",
     category: g.category ?? "Other",
-    image: g.thumbnailUrl || g.thumbnailUrl100 || g.banner_image || g.image || "",
+    image: g.banner_image || g.image || g.thumbnailUrl || g.thumbnailUrl100 || "",
     url: g.url || g.game_url || "",
     width: g.width,
     height: g.height
@@ -82,7 +82,7 @@ function render() {
       <a href="/play.html?id=${encodeURIComponent(g.id)}&title=${encodeURIComponent(slug(g.title))}">
         <div class="thumb">
           <div class="fallback">🎮</div>
-          ${g.image ? `<img src="${esc(g.image)}" alt="${esc(g.title)}" loading="lazy" onerror="this.remove()">` : ""}
+          ${g.image ? `<img src="${esc(g.image)}" alt="${esc(g.title)}" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ""}
         </div>
         <div class="card-body">
           <div class="game-title">${esc(g.title)}</div>

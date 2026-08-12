@@ -1,4 +1,5 @@
-const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
+const FEED =
+  "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
@@ -38,34 +39,36 @@ export async function onRequestGet(context) {
     );
   }
 
-  const raw = await response.json();
+  const data = await response.json();
 
-  const sourceGames = Array.isArray(raw)
-    ? raw
-    : raw.games || raw.data || raw.results || [];
+  const sourceGames = Array.isArray(data)
+    ? data
+    : data.games || data.data || data.results || [];
 
   const games = sourceGames.map(g => ({
-    id: g.id || g.namespace || "",
-    title: g.title || "Untitled game",
-    description: g.description || "",
-    category: g.category || "Other",
+    id: g.id ?? g.namespace ?? "",
+    title: g.title ?? "Untitled game",
+    description: g.description ?? "",
+    category: g.category ?? "Other",
 
     image:
       g.thumbnailUrl ||
       g.thumbnailUrl100 ||
       g.thumbnail_url ||
-      g.image ||
       g.banner_image ||
+      g.image ||
       "",
 
     url: g.url || g.game_url || "",
-
-    width: g.width || 800,
-    height: g.height || 600
+    width: g.width,
+    height: g.height
   }));
 
   return new Response(
-    JSON.stringify(games),
+    JSON.stringify({
+      ...data,
+      games
+    }),
     {
       headers: {
         "content-type": "application/json; charset=utf-8",

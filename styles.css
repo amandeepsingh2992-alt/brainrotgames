@@ -52,9 +52,7 @@ h2{font-size:30px;margin:0;letter-spacing:-.03em}
 .play-btn{display:block;text-align:center;margin-top:12px;padding:9px;border-radius:9px;background:rgba(109,93,252,.13);color:#fff;font-weight:700;font-size:13px}
 .load-more-wrap{text-align:center;padding-top:28px}
 .secondary{background:var(--panel2);box-shadow:none;border:1px solid var(--border)}
-.footer{border-top:1px solid var(--border);padding:34px 0;color:var(--muted);font-size:13px}
-.footer-inner{display:flex;justify-content:space-between;gap:20px}
-.footer strong{color:#fff}.footer-links{display:flex;gap:20px}
+
 .empty{grid-column:1/-1;padding:60px 20px;text-align:center;color:var(--muted);border:1px dashed var(--border);border-radius:16px}
 @media(max-width:900px){.hero-inner{grid-template-columns:1fr;padding:55px 0}.hero-card{display:none}.game-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:650px){.nav{gap:12px}.nav nav{display:none}.search-wrap{width:100%}.search-wrap input{width:100%}.game-grid{grid-template-columns:repeat(2,1fr);gap:12px}.section{padding:34px 0}.hero-copy{font-size:16px}.footer-inner{flex-direction:column}}

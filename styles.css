@@ -59,3 +59,51 @@ h2{font-size:30px;margin:0;letter-spacing:-.03em}
 @media(max-width:900px){.hero-inner{grid-template-columns:1fr;padding:55px 0}.hero-card{display:none}.game-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:650px){.nav{gap:12px}.nav nav{display:none}.search-wrap{width:100%}.search-wrap input{width:100%}.game-grid{grid-template-columns:repeat(2,1fr);gap:12px}.section{padding:34px 0}.hero-copy{font-size:16px}.footer-inner{flex-direction:column}}
 @media(max-width:420px){.game-grid{grid-template-columns:1fr 1fr}.card-body{padding:11px}.game-title{font-size:13px}}
+.site-footer {
+  margin-top: 48px;
+  padding: 36px 0 28px;
+  border-top: 1px solid var(--border);
+  background: var(--panel);
+}
+
+.footer-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-brand strong {
+  font-size: 18px;
+}
+
+.footer-brand span,
+.footer-copy {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-links a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.footer-links a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.footer-copy {
+  padding-top: 6px;
+}

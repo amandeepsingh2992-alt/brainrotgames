@@ -7,11 +7,11 @@
   <meta
     name="description"
     id="meta-description"
-    content="Play free browser games on BrainrotGames."
+    content="Play free browser games online on BrainrotGames."
   >
 
   <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#111827">
+  <meta name="theme-color" content="#070b14">
 
   <title>Play Game - BrainrotGames</title>
 
@@ -24,12 +24,12 @@
   <link rel="stylesheet" href="/styles.css">
 
   <style>
-    /* =========================
+    /* =========================================================
        GAME PAGE
-    ========================= */
+    ========================================================= */
 
     .game-page {
-      padding: 22px 0 70px;
+      padding: 22px 0 80px;
     }
 
     .breadcrumb {
@@ -48,6 +48,7 @@
 
     .breadcrumb .current {
       color: #fff;
+      font-weight: 650;
     }
 
     .game-layout {
@@ -57,15 +58,16 @@
       align-items: start;
     }
 
-    /* =========================
-       PLAYER
-    ========================= */
-
     .player-column {
       min-width: 0;
     }
 
+    /* =========================================================
+       PLAYER
+    ========================================================= */
+
     .player-shell {
+      position: relative;
       background: #000;
       border: 1px solid var(--border);
       border-radius: 18px;
@@ -73,13 +75,64 @@
       box-shadow: 0 22px 60px rgba(0,0,0,.35);
     }
 
-    .player-frame {
+    .player-frame-wrap {
+      position: relative;
       width: 100%;
-      min-height: min(70vh, 720px);
-      height: min(70vh, 720px);
+      aspect-ratio: 16 / 9;
+      min-height: 520px;
+      background: #000;
+    }
+
+    .player-frame {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
       border: 0;
       display: block;
       background: #000;
+    }
+
+    .player-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(
+          circle at 50% 35%,
+          rgba(109,93,252,.16),
+          transparent 35%
+        ),
+        #070b14;
+      transition: opacity .25s ease;
+      pointer-events: none;
+    }
+
+    .player-loading.hidden {
+      opacity: 0;
+    }
+
+    .loading-inner {
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .loading-spinner {
+      width: 34px;
+      height: 34px;
+      margin: 0 auto 14px;
+      border: 3px solid rgba(255,255,255,.12);
+      border-top-color: var(--accent2);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .player-bottom {
@@ -95,7 +148,7 @@
     .player-category {
       color: #fff;
       font-size: 13px;
-      font-weight: 700;
+      font-weight: 750;
     }
 
     .player-actions {
@@ -104,22 +157,28 @@
     }
 
     .player-action {
-      border: 0;
+      border: 1px solid rgba(255,255,255,.08);
       border-radius: 8px;
       padding: 8px 12px;
       background: #161616;
       color: #fff;
       cursor: pointer;
       font-size: 12px;
+      font-weight: 700;
     }
 
     .player-action:hover {
       background: #242424;
     }
 
-    /* =========================
+    .player-action:focus-visible {
+      outline: 2px solid var(--accent2);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================
        SIDEBAR
-    ========================= */
+    ========================================================= */
 
     .sidebar {
       position: sticky;
@@ -167,21 +226,21 @@
       color: #7d8aa5;
     }
 
-    /* =========================
+    /* =========================================================
        GAME HEADER
-    ========================= */
+    ========================================================= */
 
     .game-header {
       margin-top: 18px;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 22px;
+      padding: 24px;
     }
 
     .game-title {
-      margin: 0 0 10px;
-      font-size: clamp(28px, 4vw, 42px);
+      margin: 0 0 11px;
+      font-size: clamp(28px, 4vw, 44px);
       line-height: 1.05;
       letter-spacing: -.04em;
     }
@@ -205,9 +264,9 @@
       color: #fff;
     }
 
-    /* =========================
+    /* =========================================================
        CONTENT
-    ========================= */
+    ========================================================= */
 
     .content-card {
       margin-top: 18px;
@@ -245,9 +304,9 @@
       margin-bottom: 7px;
     }
 
-    /* =========================
+    /* =========================================================
        DETAILS
-    ========================= */
+    ========================================================= */
 
     .game-details {
       display: grid;
@@ -275,9 +334,9 @@
       color: #fff;
     }
 
-    /* =========================
+    /* =========================================================
        FAQ
-    ========================= */
+    ========================================================= */
 
     .faq {
       margin-top: 18px;
@@ -285,7 +344,7 @@
 
     .faq-item {
       border-bottom: 1px solid var(--border);
-      padding: 16px 0;
+      padding: 17px 0;
     }
 
     .faq-item:last-child {
@@ -303,32 +362,32 @@
       font-size: 14px;
     }
 
-    /* =========================
+    /* =========================================================
        MORE GAMES
-    ========================= */
+    ========================================================= */
 
     .more-games {
       margin-top: 18px;
-      padding: 22px;
+      padding: 24px;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 16px;
     }
 
     .more-games h2 {
-      margin-bottom: 8px;
+      margin: 0 0 8px;
     }
 
     .more-games p {
       color: var(--muted);
-      margin-top: 0;
+      margin: 0 0 16px;
+      line-height: 1.7;
     }
 
     .browse-button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      margin-top: 8px;
       padding: 11px 18px;
       border-radius: 10px;
       background: linear-gradient(
@@ -344,9 +403,9 @@
       transform: translateY(-1px);
     }
 
-    /* =========================
+    /* =========================================================
        DISCLAIMER
-    ========================= */
+    ========================================================= */
 
     .disclaimer {
       margin-top: 24px;
@@ -357,9 +416,9 @@
       line-height: 1.7;
     }
 
-    /* =========================
+    /* =========================================================
        ERROR
-    ========================= */
+    ========================================================= */
 
     .error {
       padding: 80px 20px;
@@ -367,9 +426,20 @@
       color: var(--muted);
     }
 
-    /* =========================
+    .error h1 {
+      font-size: 38px;
+      margin-bottom: 15px;
+    }
+
+    .error p {
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* =========================================================
        MOBILE
-    ========================= */
+    ========================================================= */
 
     @media(max-width:900px) {
 
@@ -387,7 +457,6 @@
       .sidebar-card {
         margin-bottom: 0;
       }
-
     }
 
     @media(max-width:650px) {
@@ -396,14 +465,22 @@
         padding: 16px 0 50px;
       }
 
-      .player-frame {
-        min-height: 60vh;
-        height: 60vh;
+      .player-frame-wrap {
+        aspect-ratio: 16 / 10;
+        min-height: 420px;
       }
 
       .player-bottom {
-        align-items: flex-start;
+        align-items: stretch;
         flex-direction: column;
+      }
+
+      .player-actions {
+        width: 100%;
+      }
+
+      .player-action {
+        flex: 1;
       }
 
       .game-header {
@@ -421,7 +498,21 @@
       .sidebar {
         grid-template-columns: 1fr;
       }
+    }
 
+    @media(max-width:420px) {
+
+      .player-frame-wrap {
+        min-height: 350px;
+      }
+
+      .game-title {
+        font-size: 29px;
+      }
+
+      .content-card h2 {
+        font-size: 24px;
+      }
     }
   </style>
 </head>
@@ -431,7 +522,11 @@
 <header class="site-header">
   <div class="container nav">
 
-    <a class="brand" href="/" aria-label="BrainrotGames home">
+    <a
+      class="brand"
+      href="/"
+      aria-label="BrainrotGames home"
+    >
       <span class="brand-mark">BG</span>
       <span>Brainrot<span>Games</span></span>
     </a>
@@ -440,6 +535,7 @@
       <a href="/">Home</a>
       <a href="/#games">Games</a>
       <a href="/#categories">Categories</a>
+      <a href="/about">About</a>
     </nav>
 
     <div class="search-wrap">
@@ -469,25 +565,28 @@
 
     <span>/</span>
 
-    <span class="current" id="breadcrumb-title">
+    <span
+      class="current"
+      id="breadcrumb-title"
+    >
       Game
     </span>
 
   </div>
 
 
-  <!-- MAIN LAYOUT -->
+  <!-- MAIN -->
 
   <div class="game-layout">
 
     <div class="player-column">
 
-      <!-- GAME PLAYER -->
-
       <div id="content">
+
         <div class="error">
           Loading game...
         </div>
+
       </div>
 
     </div>
@@ -503,27 +602,42 @@
           More Games
         </div>
 
-        <a class="sidebar-link" href="/#games">
+        <a
+          class="sidebar-link"
+          href="/#games"
+        >
           <span>All Games</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/#categories">
+        <a
+          class="sidebar-link"
+          href="/#categories"
+        >
           <span>Action Games</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/#categories">
+        <a
+          class="sidebar-link"
+          href="/#categories"
+        >
           <span>Puzzle Games</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/#categories">
+        <a
+          class="sidebar-link"
+          href="/#categories"
+        >
           <span>Arcade Games</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/#categories">
+        <a
+          class="sidebar-link"
+          href="/#categories"
+        >
           <span>Casual Games</span>
           <span class="sidebar-arrow">›</span>
         </a>
@@ -537,17 +651,26 @@
           Discover
         </div>
 
-        <a class="sidebar-link" href="/about">
+        <a
+          class="sidebar-link"
+          href="/about"
+        >
           <span>About BrainrotGames</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/contact">
+        <a
+          class="sidebar-link"
+          href="/contact"
+        >
           <span>Contact Us</span>
           <span class="sidebar-arrow">›</span>
         </a>
 
-        <a class="sidebar-link" href="/privacy">
+        <a
+          class="sidebar-link"
+          href="/privacy"
+        >
           <span>Privacy Policy</span>
           <span class="sidebar-arrow">›</span>
         </a>
@@ -575,7 +698,11 @@
 
     </div>
 
-    <nav class="footer-links" aria-label="Footer navigation">
+
+    <nav
+      class="footer-links"
+      aria-label="Footer navigation"
+    >
 
       <a href="/about">About Us</a>
       <a href="/contact">Contact Us</a>
@@ -584,6 +711,7 @@
       <a href="/terms">Terms of Service</a>
 
     </nav>
+
 
     <div class="footer-copy">
       © 2026 BrainrotGames. All rights reserved.
@@ -596,13 +724,23 @@
 
 <script>
 
-  const qs = new URLSearchParams(location.search);
+  /* =========================================================
+     QUERY PARAMETERS
+  ========================================================= */
+
+  const qs = new URLSearchParams(
+    location.search
+  );
 
   const id = qs.get("id");
 
   const requestedTitle =
     qs.get("title") || "Game";
 
+
+  /* =========================================================
+     ELEMENTS
+  ========================================================= */
 
   const content =
     document.getElementById("content");
@@ -617,9 +755,9 @@
     document.getElementById("breadcrumb-title");
 
 
-  /* =========================
+  /* =========================================================
      SECURITY
-  ========================= */
+  ========================================================= */
 
   function escapeHtml(value = "") {
 
@@ -647,9 +785,9 @@
   }
 
 
-  /* =========================
+  /* =========================================================
      CATEGORY CONTENT
-  ========================= */
+  ========================================================= */
 
   function categoryInstructions(category) {
 
@@ -764,15 +902,15 @@
       return `
         <p>
           Farming games generally combine resource
-          management, progression and simple interactive
-          tasks. Start by understanding the main objective
-          and then gradually expand your progress.
+          management, progression and interactive tasks.
+          Start by understanding the main objective and
+          gradually expand your progress.
         </p>
 
         <ul>
           <li>Learn the basic resource system.</li>
           <li>Prioritize useful upgrades.</li>
-          <li>Keep track of your available resources.</li>
+          <li>Keep track of available resources.</li>
           <li>Progress gradually rather than rushing upgrades.</li>
         </ul>
       `;
@@ -790,7 +928,7 @@
 
       <ul>
         <li>Read the instructions shown at the beginning.</li>
-        <li>Learn the controls before attempting difficult sections.</li>
+        <li>Learn the controls before difficult sections.</li>
         <li>Pay attention to the game's objectives.</li>
         <li>Replay sections to become familiar with the mechanics.</li>
       </ul>
@@ -799,9 +937,184 @@
   }
 
 
-  /* =========================
+  /* =========================================================
+     FULLSCREEN
+  ========================================================= */
+
+  function fullscreenGame() {
+
+    const frame =
+      document.querySelector(".player-frame-wrap");
+
+    if (!frame) return;
+
+    if (document.fullscreenElement) {
+
+      document.exitFullscreen?.();
+
+      return;
+
+    }
+
+    frame.requestFullscreen?.();
+
+  }
+
+
+  /* =========================================================
+     STRUCTURED DATA
+  ========================================================= */
+
+  function addStructuredData(
+    title,
+    description,
+    category,
+    gameUrl
+  ) {
+
+    const existing =
+      document.getElementById(
+        "game-structured-data"
+      );
+
+    if (existing) {
+      existing.remove();
+    }
+
+    const data = {
+
+      "@context": "https://schema.org",
+
+      "@type": "VideoGame",
+
+      "name": title,
+
+      "description":
+        description ||
+        `Play ${title} free online on BrainrotGames.`,
+
+      "genre": category,
+
+      "gamePlatform": [
+        "Web Browser"
+      ],
+
+      "applicationCategory":
+        "Game",
+
+      "url":
+        location.href,
+
+      "playMode":
+        "SinglePlayer",
+
+      "isFamilyFriendly":
+        true,
+
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+
+    };
+
+    const script =
+      document.createElement("script");
+
+    script.id =
+      "game-structured-data";
+
+    script.type =
+      "application/ld+json";
+
+    script.textContent =
+      JSON.stringify(data);
+
+    document.head.appendChild(script);
+
+
+    /* FAQ structured data */
+
+    const faqData = {
+
+      "@context": "https://schema.org",
+
+      "@type": "FAQPage",
+
+      "mainEntity": [
+
+        {
+          "@type": "Question",
+          "name":
+            `Can I play ${title} for free?`,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text":
+              `${title} is available to play directly in your browser through BrainrotGames.`
+          }
+        },
+
+        {
+          "@type": "Question",
+          "name":
+            "Do I need to download anything?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text":
+              "No separate game installation is required for the browser version."
+          }
+        },
+
+        {
+          "@type": "Question",
+          "name":
+            "Can I play this game on mobile?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text":
+              "Mobile compatibility depends on the game and whether it supports touch controls."
+          }
+        },
+
+        {
+          "@type": "Question",
+          "name":
+            "Why might the game fail to load?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text":
+              "Try refreshing the page and make sure your browser has a stable internet connection. Temporary availability issues can also occur with third-party game providers."
+          }
+        }
+
+      ]
+
+    };
+
+
+    const faqScript =
+      document.createElement("script");
+
+    faqScript.id =
+      "faq-structured-data";
+
+    faqScript.type =
+      "application/ld+json";
+
+    faqScript.textContent =
+      JSON.stringify(faqData);
+
+    document.head.appendChild(
+      faqScript
+    );
+
+  }
+
+
+  /* =========================================================
      START GAME
-  ========================= */
+  ========================================================= */
 
   async function start() {
 
@@ -813,13 +1126,16 @@
           <h1>Game not found</h1>
 
           <p>
-            Please return to the game library and
-            choose a game.
+            Please return to the game library
+            and choose a game.
           </p>
 
           <br>
 
-          <a class="cta" href="/">
+          <a
+            class="cta"
+            href="/"
+          >
             Browse games
           </a>
 
@@ -839,16 +1155,19 @@
           encodeURIComponent(id),
           {
             headers: {
-              Accept: "application/json"
+              Accept:
+                "application/json"
             }
           }
         );
 
 
       if (!response.ok) {
+
         throw new Error(
           "Game request failed"
         );
+
       }
 
 
@@ -879,15 +1198,17 @@
 
 
       if (!game.url) {
+
         throw new Error(
           "Game URL unavailable"
         );
+
       }
 
 
-      /* =========================
+      /* =====================================================
          SEO
-      ========================= */
+      ===================================================== */
 
       document.title =
         "Play " +
@@ -897,12 +1218,8 @@
 
       const pageDescription =
         description ||
-        "Play " +
-        title +
-        " free online on BrainrotGames. " +
-        "Enjoy this " +
-        category.toLowerCase() +
-        " browser game.";
+        `Play ${title} free online on BrainrotGames. Enjoy this ${category.toLowerCase()} browser game.`;
+
 
       metaDescription.setAttribute(
         "content",
@@ -921,9 +1238,21 @@
         title;
 
 
-      /* =========================
+      /* =====================================================
+         STRUCTURED DATA
+      ===================================================== */
+
+      addStructuredData(
+        title,
+        description,
+        category,
+        game.url
+      );
+
+
+      /* =====================================================
          SAFE VALUES
-      ========================= */
+      ===================================================== */
 
       const safeUrl =
         escapeHtml(game.url);
@@ -938,21 +1267,51 @@
         escapeHtml(description);
 
 
-      /* =========================
+      /* =====================================================
          PAGE
-      ========================= */
+      ===================================================== */
 
       content.innerHTML = `
 
         <div class="player-shell">
 
-          <iframe
-            class="player-frame"
-            src="${safeUrl}"
-            title="${safeTitle}"
-            allow="fullscreen; autoplay"
-            loading="eager">
-          </iframe>
+          <div
+            class="player-frame-wrap"
+            id="player-frame-wrap"
+          >
+
+            <div
+              class="player-loading"
+              id="player-loading"
+            >
+
+              <div class="loading-inner">
+
+                <div
+                  class="loading-spinner"
+                  aria-hidden="true">
+                </div>
+
+                <div>
+                  Loading ${safeTitle}...
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <iframe
+              class="player-frame"
+              src="${safeUrl}"
+              title="Play ${safeTitle}"
+              allow="fullscreen; autoplay; gamepad"
+              allowfullscreen
+              loading="eager"
+              id="game-frame">
+            </iframe>
+
+          </div>
 
 
           <div class="player-bottom">
@@ -961,20 +1320,24 @@
               ${safeCategory}
             </div>
 
+
             <div class="player-actions">
 
               <button
                 class="player-action"
                 type="button"
-                onclick="window.scrollTo({top:0,behavior:'smooth'})">
+                id="top-button"
+              >
                 ↑ Top
               </button>
+
 
               <button
                 class="player-action"
                 type="button"
-                onclick="document.documentElement.requestFullscreen?.()">
-                Fullscreen
+                id="fullscreen-button"
+              >
+                ⛶ Fullscreen
               </button>
 
             </div>
@@ -998,17 +1361,13 @@
               ${safeCategory}
             </span>
 
-            <span>
-              •
-            </span>
+            <span>•</span>
 
             <span>
-              Play free online
+              Free to play
             </span>
 
-            <span>
-              •
-            </span>
+            <span>•</span>
 
             <span>
               Browser game
@@ -1027,6 +1386,7 @@
             About ${safeTitle}
           </h2>
 
+
           ${
             safeDescription
               ? `
@@ -1036,11 +1396,9 @@
               `
               : `
                 <p>
-                  ${safeTitle} is a free browser game
+                  ${safeTitle} is a browser game
                   available to play online through
-                  BrainrotGames. The game can be played
-                  directly in your browser without
-                  installing separate software.
+                  BrainrotGames.
                 </p>
               `
           }
@@ -1146,7 +1504,10 @@
 
         <!-- FAQ -->
 
-        <section class="content-card faq">
+        <section
+          class="content-card faq"
+          id="faq"
+        >
 
           <h2>
             Frequently Asked Questions
@@ -1160,9 +1521,9 @@
             </div>
 
             <div class="faq-answer">
-              Yes. ${safeTitle} is available to play
-              directly in your browser through
-              BrainrotGames.
+              Yes. ${safeTitle} is available
+              to play directly in your browser
+              through BrainrotGames.
             </div>
 
           </div>
@@ -1171,13 +1532,13 @@
           <div class="faq-item">
 
             <div class="faq-question">
-              Do I need to download the game?
+              Do I need to download anything?
             </div>
 
             <div class="faq-answer">
-              No separate game installation is required
-              for the browser version. The game loads
-              directly on the page.
+              No separate game installation is
+              required for the browser version.
+              The game loads directly on the page.
             </div>
 
           </div>
@@ -1186,14 +1547,13 @@
           <div class="faq-item">
 
             <div class="faq-question">
-              Can I play on mobile?
+              Can I play ${safeTitle} on mobile?
             </div>
 
             <div class="faq-answer">
-              Mobile compatibility depends on the game.
-              If the game supports touch controls,
-              it can be played on compatible mobile
-              devices.
+              Mobile compatibility depends on the
+              game. Games that support touch controls
+              can be played on compatible mobile devices.
             </div>
 
           </div>
@@ -1202,15 +1562,14 @@
           <div class="faq-item">
 
             <div class="faq-question">
-              Why is the game not loading?
+              Why might the game fail to load?
             </div>
 
             <div class="faq-answer">
               Try refreshing the page and make sure
               your browser has a stable internet
-              connection. Temporary availability
-              issues can also occur with third-party
-              game providers.
+              connection. Temporary availability issues
+              can also occur with third-party game providers.
             </div>
 
           </div>
@@ -1229,13 +1588,14 @@
           <p>
             Looking for something different?
             Browse the BrainrotGames library and
-            explore more free online games across
+            explore free online games across
             different categories.
           </p>
 
           <a
             class="browse-button"
-            href="/#games">
+            href="/#games"
+          >
             Browse More Games
           </a>
 
@@ -1263,6 +1623,75 @@
 
       `;
 
+
+      /* =====================================================
+         PLAYER EVENTS
+      ===================================================== */
+
+      const frame =
+        document.getElementById(
+          "game-frame"
+        );
+
+      const loading =
+        document.getElementById(
+          "player-loading"
+        );
+
+      const fullscreenButton =
+        document.getElementById(
+          "fullscreen-button"
+        );
+
+      const topButton =
+        document.getElementById(
+          "top-button"
+        );
+
+
+      frame.addEventListener(
+        "load",
+        () => {
+
+          loading.classList.add(
+            "hidden"
+          );
+
+        }
+      );
+
+
+      fullscreenButton.addEventListener(
+        "click",
+        fullscreenGame
+      );
+
+
+      topButton.addEventListener(
+        "click",
+        () => {
+
+          window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+          });
+
+        }
+      );
+
+
+      document.addEventListener(
+        "fullscreenchange",
+        () => {
+
+          fullscreenButton.textContent =
+            document.fullscreenElement
+              ? "⛶ Exit Fullscreen"
+              : "⛶ Fullscreen";
+
+        }
+      );
+
     }
 
 
@@ -1281,15 +1710,16 @@
 
           <p>
             The game is temporarily unavailable.
-            Please try again later or choose another
-            game from our library.
+            Please try again later or choose
+            another game from our library.
           </p>
 
           <br>
 
           <a
             class="cta"
-            href="/">
+            href="/"
+          >
             Browse games
           </a>
 
@@ -1302,12 +1732,14 @@
   }
 
 
-  /* =========================
+  /* =========================================================
      SEARCH
-  ========================= */
+  ========================================================= */
 
   const search =
-    document.getElementById("game-search");
+    document.getElementById(
+      "game-search"
+    );
 
 
   if (search) {
@@ -1335,9 +1767,9 @@
   }
 
 
-  /* =========================
+  /* =========================================================
      INIT
-  ========================= */
+  ========================================================= */
 
   start();
 

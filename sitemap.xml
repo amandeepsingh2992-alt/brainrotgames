@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://brainrotgames.me/</loc></url>
-  <url><loc>https://brainrotgames.me/play.html</loc></url>
+
+  <url>
+    <loc>https://brainrotgames.me/</loc>
+  </url>
+
+  <url>
+    <loc>https://brainrotgames.me/about</loc>
+  </url>
+
+  <url>
+    <loc>https://brainrotgames.me/contact</loc>
+  </url>
+
+  <url>
+    <loc>https://brainrotgames.me/privacy</loc>
+  </url>
+
+  <url>
+    <loc>https://brainrotgames.me/cookies</loc>
+  </url>
+
+  <url>
+    <loc>https://brainrotgames.me/terms</loc>
+  </url>
+
 </urlset>

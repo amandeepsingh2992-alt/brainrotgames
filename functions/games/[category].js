@@ -1,6 +1,7 @@
 const SITE_URL = "https://brainrotgames.me";
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
-const MAX_FEED_PAGES = 10;
+const MAX_FEED_PAGES = 30;
+const PAGE_BATCH_SIZE = 5;
 
 const CATEGORY_COPY = {
   action: "Fast-paced browser games with combat, reflexes and quick challenges.",
@@ -37,15 +38,21 @@ function slug(value = "") {
 
 function categoryMatches(gameCategory = "", requestedSlug = "") {
   const gameSlug = slug(gameCategory);
-
   if (!gameSlug || !requestedSlug) return false;
 
-  return (
-    gameSlug === requestedSlug ||
-    gameSlug.startsWith(`${requestedSlug}-`) ||
-    gameSlug.endsWith(`-${requestedSlug}`) ||
-    gameSlug.includes(`-${requestedSlug}-`)
-  );
+  // Exact match first.
+  if (gameSlug === requestedSlug) return true;
+
+  // Match common GamePix variants such as word-games, puzzle-game, sports-games, etc.
+  const gameParts = gameSlug.split("-");
+  const requestedParts = requestedSlug.split("-");
+
+  if (requestedParts.every((part) => gameParts.includes(part))) return true;
+  if (gameSlug.startsWith(`${requestedSlug}-`)) return true;
+  if (gameSlug.endsWith(`-${requestedSlug}`)) return true;
+  if (gameSlug.includes(`-${requestedSlug}-`)) return true;
+
+  return false;
 }
 
 function gameUrl(game) {
@@ -80,45 +87,53 @@ function gameCard(game) {
   `;
 }
 
+async function fetchFeedPage(page) {
+  try {
+    const response = await fetch(`${FEED}${page}`, {
+      headers: { Accept: "application/json" }
+    });
+
+    if (!response.ok) return [];
+
+    const data = await response.json();
+    return Array.isArray(data.items) ? data.items : [];
+  } catch (error) {
+    console.error(`GamePix category fetch failed for page ${page}:`, error);
+    return [];
+  }
+}
+
 async function fetchCategoryGames(requestedSlug) {
-  const pageNumbers = Array.from(
-    { length: MAX_FEED_PAGES },
-    (_, index) => index + 1
-  );
-
-  const responses = await Promise.all(
-    pageNumbers.map(async (page) => {
-      try {
-        const response = await fetch(`${FEED}${page}`, {
-          headers: { Accept: "application/json" }
-        });
-
-        if (!response.ok) return [];
-
-        const data = await response.json();
-        return Array.isArray(data.items) ? data.items : [];
-      } catch (error) {
-        console.error(`GamePix category fetch failed for page ${page}:`, error);
-        return [];
-      }
-    })
-  );
-
   const seen = new Set();
   const matches = [];
 
-  for (const pageItems of responses) {
-    for (const game of pageItems) {
-      const id = String(game.id ?? game.namespace ?? "");
+  // Search the feed in small parallel batches. This gives sparse categories
+  // (especially Word/Card/Board) enough depth without firing 30 requests at once.
+  for (let start = 1; start <= MAX_FEED_PAGES; start += PAGE_BATCH_SIZE) {
+    const pages = [];
 
-      if (!id || seen.has(id)) continue;
-      seen.add(id);
+    for (
+      let page = start;
+      page < start + PAGE_BATCH_SIZE && page <= MAX_FEED_PAGES;
+      page += 1
+    ) {
+      pages.push(page);
+    }
 
-      if (categoryMatches(game.category, requestedSlug)) {
-        matches.push(game);
+    const pageResults = await Promise.all(pages.map(fetchFeedPage));
+
+    for (const pageItems of pageResults) {
+      for (const game of pageItems) {
+        const id = String(game.id ?? game.namespace ?? "");
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+
+        if (categoryMatches(game.category, requestedSlug)) {
+          matches.push(game);
+        }
+
+        if (matches.length >= 24) return matches;
       }
-
-      if (matches.length >= 24) return matches;
     }
   }
 

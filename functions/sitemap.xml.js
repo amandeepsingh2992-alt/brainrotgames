@@ -27,11 +27,10 @@ export async function onRequestGet(context) {
       const items = Array.isArray(data.items) ? data.items : [];
       for (const game of items) {
         const id = game.id ?? game.namespace ?? "";
-        const title = game.title ?? "";
         if (!id) continue;
+        // Keep only the stable game-ID URL in the sitemap. The optional title query parameter is intentionally omitted because /play canonicalizes to the ID-only URL.
         const gameUrl = new URL("/play", SITE_URL);
         gameUrl.searchParams.set("id", String(id));
-        if (title) gameUrl.searchParams.set("title", slug(title));
         const url = gameUrl.toString();
         if (!seen.has(url)) { seen.add(url); urls.push(url); }
       }

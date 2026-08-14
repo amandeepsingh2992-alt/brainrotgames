@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="en">
+
 <head>
+
   <meta charset="utf-8">
 
   <meta
@@ -18,7 +20,9 @@
     content="#070b14"
   >
 
-  <title>Play Game - BrainrotGames</title>
+  <title>
+    Play Game - BrainrotGames
+  </title>
 
   <meta
     name="description"
@@ -26,7 +30,10 @@
     content="Play free browser games online on BrainrotGames."
   >
 
-  <!-- Canonical URL is updated dynamically for each game -->
+  <!-- =========================================================
+       CANONICAL
+       ========================================================= -->
+
   <link
     rel="canonical"
     id="canonical-url"
@@ -38,10 +45,11 @@
     href="/styles.css"
   >
 
+  <!-- =========================================================
+       PAGE-SPECIFIC CSS
+       ========================================================= -->
+
   <style>
-    /* =========================================================
-       GAME PAGE
-    ========================================================= */
 
     .game-page {
       padding: 36px 0 80px;
@@ -119,10 +127,6 @@
       margin: 0;
     }
 
-    /* =========================================================
-       GAME PLAYER
-    ========================================================= */
-
     .game-player-wrap {
       padding: 0 28px 28px;
     }
@@ -158,10 +162,6 @@
       z-index: 0;
     }
 
-    /* =========================================================
-       GAME INFORMATION
-    ========================================================= */
-
     .game-info {
       padding: 28px;
       border-top: 1px solid var(--border);
@@ -186,18 +186,13 @@
       margin: 0 0 18px;
     }
 
-    .game-info ul,
-    .game-sidebar ul {
+    .game-info ul {
       padding-left: 22px;
     }
 
     .game-info section + section {
       margin-top: 34px;
     }
-
-    /* =========================================================
-       GAME DETAILS
-    ========================================================= */
 
     .game-details {
       display: grid;
@@ -225,10 +220,6 @@
       font-weight: 700;
       word-break: break-word;
     }
-
-    /* =========================================================
-       SIDEBAR
-    ========================================================= */
 
     .game-sidebar {
       display: flex;
@@ -268,10 +259,6 @@
       background: rgba(255,255,255,.04);
     }
 
-    /* =========================================================
-       NOTICE
-    ========================================================= */
-
     .notice {
       padding: 14px;
       border-radius: 12px;
@@ -281,10 +268,6 @@
       font-size: 13px;
       line-height: 1.7;
     }
-
-    /* =========================================================
-       FAQ
-    ========================================================= */
 
     .faq-list {
       display: flex;
@@ -308,10 +291,6 @@
       margin: 12px 0 0;
     }
 
-    /* =========================================================
-       RELATED GAMES
-    ========================================================= */
-
     .related-games {
       margin-top: 28px;
     }
@@ -319,10 +298,6 @@
     .related-games a {
       color: #22d3c5;
     }
-
-    /* =========================================================
-       ERROR
-    ========================================================= */
 
     .error-card {
       max-width: 760px;
@@ -342,10 +317,6 @@
       color: var(--muted);
       line-height: 1.7;
     }
-
-    /* =========================================================
-       FOOTER
-    ========================================================= */
 
     .site-footer {
       margin-top: 48px;
@@ -399,11 +370,8 @@
       margin: 8px 0 0;
     }
 
-    /* =========================================================
-       RESPONSIVE
-    ========================================================= */
-
     @media (max-width: 900px) {
+
       .game-layout {
         grid-template-columns: 1fr;
       }
@@ -412,9 +380,11 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
+
     }
 
     @media (max-width: 650px) {
+
       .game-page {
         padding-top: 24px;
       }
@@ -442,11 +412,20 @@
       .game-heading h1 {
         font-size: 32px;
       }
+
     }
+
   </style>
+
 </head>
 
+
 <body>
+
+
+<!-- =========================================================
+     HEADER
+     ========================================================= -->
 
 <header class="site-header">
 
@@ -457,15 +436,36 @@
       href="/"
       aria-label="BrainrotGames home"
     >
-      <span class="brand-mark">BG</span>
-      <span>Brainrot<span>Games</span></span>
+
+      <span class="brand-mark">
+        BG
+      </span>
+
+      <span>
+        Brainrot<span>Games</span>
+      </span>
+
     </a>
 
+
     <nav aria-label="Main navigation">
-      <a href="/">Home</a>
-      <a href="/#games">Games</a>
-      <a href="/#categories">Categories</a>
-      <a href="/#about">About</a>
+
+      <a href="/">
+        Home
+      </a>
+
+      <a href="/#games">
+        Games
+      </a>
+
+      <a href="/#categories">
+        Categories
+      </a>
+
+      <a href="/#about">
+        About
+      </a>
+
     </nav>
 
   </div>
@@ -473,12 +473,23 @@
 </header>
 
 
+
+<!-- =========================================================
+     MAIN
+     ========================================================= -->
+
 <main class="container game-page">
+
 
   <div
     id="game-content"
     style="display:none;"
   >
+
+
+    <!-- =====================================================
+         BREADCRUMBS
+         ===================================================== -->
 
     <div class="breadcrumbs">
 
@@ -505,11 +516,20 @@
     </div>
 
 
+
     <div class="game-layout">
+
+
+      <!-- ===================================================
+           MAIN GAME COLUMN
+           =================================================== -->
 
       <div class="game-main">
 
         <article class="game-card">
+
+
+          <!-- GAME HEADING -->
 
           <div class="game-heading">
 
@@ -533,6 +553,9 @@
 
           </div>
 
+
+
+          <!-- GAME PLAYER -->
 
           <div class="game-player-wrap">
 
@@ -559,7 +582,13 @@
           </div>
 
 
+
+          <!-- GAME INFORMATION -->
+
           <div class="game-info">
+
+
+            <!-- ABOUT -->
 
             <section>
 
@@ -574,6 +603,9 @@
             </section>
 
 
+
+            <!-- HOW TO PLAY -->
+
             <section>
 
               <h2>
@@ -581,13 +613,16 @@
               </h2>
 
               <p>
-                Open the game above and follow the instructions shown
-                inside the game. Controls and objectives can vary
-                depending on the individual game.
+                Open the game above and follow the instructions
+                shown inside the game. Controls and objectives can
+                vary depending on the individual game.
               </p>
 
             </section>
 
+
+
+            <!-- CONTROLS -->
 
             <section>
 
@@ -596,13 +631,17 @@
               </h2>
 
               <p>
-                Controls depend on the game. Many browser games use
-                keyboard, mouse, touch controls, or a combination of
-                these. Check the instructions provided within the game.
+                Controls depend on the game. Many browser games
+                use keyboard, mouse, touch controls, or a
+                combination of these. Check the instructions
+                provided within the game.
               </p>
 
             </section>
 
+
+
+            <!-- TIPS -->
 
             <section>
 
@@ -617,7 +656,8 @@
                 </li>
 
                 <li>
-                  Use a stable internet connection for smoother gameplay.
+                  Use a stable internet connection for smoother
+                  gameplay.
                 </li>
 
                 <li>
@@ -635,6 +675,9 @@
             </section>
 
 
+
+            <!-- GAME DETAILS -->
+
             <section>
 
               <h2>
@@ -642,6 +685,7 @@
               </h2>
 
               <div class="game-details">
+
 
                 <div class="detail-item">
 
@@ -697,10 +741,14 @@
 
                 </div>
 
+
               </div>
 
             </section>
 
+
+
+            <!-- FAQ -->
 
             <section>
 
@@ -710,6 +758,7 @@
 
               <div class="faq-list">
 
+
                 <details>
 
                   <summary>
@@ -717,10 +766,10 @@
                   </summary>
 
                   <p>
-                    BrainrotGames provides access to browser games
-                    that can be played online. Individual games may
-                    be provided by third-party publishers or
-                    distributors.
+                    BrainrotGames provides access to browser
+                    games that can be played online. Individual
+                    games may be provided by third-party
+                    publishers or distributors.
                   </p>
 
                 </details>
@@ -733,9 +782,9 @@
                   </summary>
 
                   <p>
-                    No separate game installation is required for
-                    supported browser games. The game loads through
-                    your web browser.
+                    No separate game installation is required
+                    for supported browser games. The game loads
+                    through your web browser.
                   </p>
 
                 </details>
@@ -770,10 +819,14 @@
 
                 </details>
 
+
               </div>
 
             </section>
 
+
+
+            <!-- RELATED -->
 
             <section class="related-games">
 
@@ -794,19 +847,23 @@
             </section>
 
 
+
+            <!-- THIRD PARTY NOTICE -->
+
             <section>
 
               <div class="notice">
 
                 Some games available on BrainrotGames are supplied
-                through third-party game publishers, distributors or
-                technology providers. Game titles, artwork, trademarks
-                and related intellectual property remain the property
-                of their respective owners.
+                through third-party game publishers, distributors
+                or technology providers. Game titles, artwork,
+                trademarks and related intellectual property remain
+                the property of their respective owners.
 
               </div>
 
             </section>
+
 
           </div>
 
@@ -815,7 +872,13 @@
       </div>
 
 
+
+      <!-- ===================================================
+           SIDEBAR
+           =================================================== -->
+
       <aside class="game-sidebar">
+
 
         <div class="sidebar-card">
 
@@ -844,6 +907,7 @@
           </div>
 
         </div>
+
 
 
         <div class="sidebar-card">
@@ -879,6 +943,7 @@
         </div>
 
 
+
         <div class="sidebar-card">
 
           <h2>
@@ -897,12 +962,19 @@
 
         </div>
 
+
       </aside>
+
 
     </div>
 
   </div>
 
+
+
+  <!-- =======================================================
+       ERROR STATE
+       ======================================================= -->
 
   <div
     class="error-card"
@@ -919,12 +991,19 @@
 
   </div>
 
+
 </main>
 
+
+
+<!-- =========================================================
+     FOOTER
+     ========================================================= -->
 
 <footer class="site-footer">
 
   <div class="container footer-inner">
+
 
     <div class="footer-brand">
 
@@ -976,22 +1055,29 @@
       <p>
         BrainrotGames provides access to browser games supplied
         through third-party game publishers, distributors and
-        technology providers. BrainrotGames does not claim ownership
-        of third-party game content unless otherwise stated.
+        technology providers. BrainrotGames does not claim
+        ownership of third-party game content unless otherwise
+        stated.
       </p>
 
     </div>
+
 
   </div>
 
 </footer>
 
 
+
+<!-- =========================================================
+     GAME SCRIPT
+     ========================================================= -->
+
 <script>
 
   /* =========================================================
      URL PARAMETERS
-  ========================================================= */
+     ========================================================= */
 
   const params =
     new URLSearchParams(
@@ -1001,56 +1087,86 @@
   const gameId =
     params.get("id");
 
+  const requestedTitle =
+    params.get("title") || "";
+
+
 
   /* =========================================================
      DOM ELEMENTS
-  ========================================================= */
+     ========================================================= */
 
   const gameContent =
-    document.getElementById("game-content");
+    document.getElementById(
+      "game-content"
+    );
 
   const gameError =
-    document.getElementById("game-error");
+    document.getElementById(
+      "game-error"
+    );
 
   const titleEl =
-    document.getElementById("game-title");
+    document.getElementById(
+      "game-title"
+    );
 
   const descriptionEl =
-    document.getElementById("game-description");
+    document.getElementById(
+      "game-description"
+    );
 
   const aboutEl =
-    document.getElementById("about-game");
+    document.getElementById(
+      "about-game"
+    );
 
   const categoryEl =
-    document.getElementById("game-category");
+    document.getElementById(
+      "game-category"
+    );
 
   const detailCategoryEl =
-    document.getElementById("detail-category");
+    document.getElementById(
+      "detail-category"
+    );
 
   const breadcrumbEl =
-    document.getElementById("breadcrumb-title");
+    document.getElementById(
+      "breadcrumb-title"
+    );
 
   const frame =
-    document.getElementById("game-frame");
+    document.getElementById(
+      "game-frame"
+    );
 
   const playerLoading =
-    document.getElementById("player-loading");
+    document.getElementById(
+      "player-loading"
+    );
 
   const metaDescription =
-    document.getElementById("meta-description");
+    document.getElementById(
+      "meta-description"
+    );
 
   const canonical =
-    document.getElementById("canonical-url");
+    document.getElementById(
+      "canonical-url"
+    );
+
 
 
   /* =========================================================
-     HTML ESCAPING
-  ========================================================= */
+     HELPERS
+     ========================================================= */
 
   function escapeHtml(value = "") {
 
     return String(value).replace(
       /[&<>"']/g,
+
       char => ({
         "&": "&amp;",
         "<": "&lt;",
@@ -1063,24 +1179,37 @@
   }
 
 
-  /* =========================================================
-     SLUG GENERATOR
-  ========================================================= */
 
   function slug(value = "") {
 
     return String(value)
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-|-$/g,
+        "");
 
   }
 
 
+
+  function cleanText(value = "") {
+
+    return String(value)
+      .replace(/\s+/g, " ")
+      .trim();
+
+  }
+
+
+
   /* =========================================================
      ERROR HANDLING
-  ========================================================= */
+     ========================================================= */
 
   function showError(message) {
 
@@ -1116,9 +1245,10 @@
   }
 
 
+
   /* =========================================================
      GAMEPIX URL SECURITY
-  ========================================================= */
+     ========================================================= */
 
   function isSafeGameUrl(value) {
 
@@ -1133,7 +1263,9 @@
 
         (
           url.hostname === "games.gamepix.com" ||
-          url.hostname.endsWith(".gamepix.com")
+          url.hostname.endsWith(
+            ".gamepix.com"
+          )
         )
 
       );
@@ -1147,11 +1279,243 @@
   }
 
 
+
+  /* =========================================================
+     EARLY SEO
+     ========================================================= */
+
+  function setInitialSeo() {
+
+    if (!gameId) {
+      return;
+    }
+
+    const initialTitle =
+      requestedTitle
+        ? requestedTitle
+            .split("-")
+            .map(
+              word =>
+                word.charAt(0).toUpperCase() +
+                word.slice(1)
+            )
+            .join(" ")
+        : "Game";
+
+    document.title =
+      `Play ${initialTitle} Free Online - BrainrotGames`;
+
+    const initialCanonical =
+      `https://brainrotgames.me/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(requestedTitle)}`;
+
+    canonical.setAttribute(
+      "href",
+      initialCanonical
+    );
+
+  }
+
+
+
+  /* =========================================================
+     STRUCTURED DATA
+     ========================================================= */
+
+  function addStructuredData(
+    title,
+    description,
+    category,
+    image,
+    canonicalUrl
+  ) {
+
+    const oldGameSchema =
+      document.getElementById(
+        "game-schema"
+      );
+
+    if (oldGameSchema) {
+      oldGameSchema.remove();
+    }
+
+
+    const oldBreadcrumbSchema =
+      document.getElementById(
+        "breadcrumb-schema"
+      );
+
+    if (oldBreadcrumbSchema) {
+      oldBreadcrumbSchema.remove();
+    }
+
+
+
+    /* =======================================================
+       VIDEO GAME SCHEMA
+       ======================================================= */
+
+    const gameSchema =
+      document.createElement(
+        "script"
+      );
+
+    gameSchema.type =
+      "application/ld+json";
+
+    gameSchema.id =
+      "game-schema";
+
+
+    const gameData = {
+
+      "@context":
+        "https://schema.org",
+
+      "@type":
+        "VideoGame",
+
+      "name":
+        title,
+
+      "description":
+        description,
+
+      "genre":
+        category,
+
+      "gamePlatform":
+        "Web Browser",
+
+      "url":
+        canonicalUrl,
+
+      "isAccessibleForFree":
+        true,
+
+      "publisher": {
+
+        "@type":
+          "Organization",
+
+        "name":
+          "BrainrotGames",
+
+        "url":
+          "https://brainrotgames.me/"
+
+      }
+
+    };
+
+
+    if (image) {
+
+      gameData.image =
+        image;
+
+    }
+
+
+    gameSchema.textContent =
+      JSON.stringify(
+        gameData
+      );
+
+
+    document.head.appendChild(
+      gameSchema
+    );
+
+
+
+    /* =======================================================
+       BREADCRUMB SCHEMA
+       ======================================================= */
+
+    const breadcrumbSchema =
+      document.createElement(
+        "script"
+      );
+
+    breadcrumbSchema.type =
+      "application/ld+json";
+
+    breadcrumbSchema.id =
+      "breadcrumb-schema";
+
+
+    breadcrumbSchema.textContent =
+      JSON.stringify({
+
+        "@context":
+          "https://schema.org",
+
+        "@type":
+          "BreadcrumbList",
+
+        "itemListElement": [
+
+          {
+            "@type":
+              "ListItem",
+
+            "position":
+              1,
+
+            "name":
+              "Home",
+
+            "item":
+              "https://brainrotgames.me/"
+          },
+
+          {
+            "@type":
+              "ListItem",
+
+            "position":
+              2,
+
+            "name":
+              "Games",
+
+            "item":
+              "https://brainrotgames.me/#games"
+          },
+
+          {
+            "@type":
+              "ListItem",
+
+            "position":
+              3,
+
+            "name":
+              title,
+
+            "item":
+              canonicalUrl
+          }
+
+        ]
+
+      });
+
+
+    document.head.appendChild(
+      breadcrumbSchema
+    );
+
+  }
+
+
+
   /* =========================================================
      LOAD GAME
-  ========================================================= */
+     ========================================================= */
 
   async function loadGame() {
+
 
     if (!gameId) {
 
@@ -1164,14 +1528,24 @@
     }
 
 
+
     try {
+
+
+      /* =====================================================
+         API REQUEST
+         ===================================================== */
 
       const response =
         await fetch(
-          `/api/game?id=${encodeURIComponent(gameId)}`,
+          "/api/game?id=" +
+          encodeURIComponent(
+            gameId
+          ),
           {
             headers: {
-              Accept: "application/json"
+              Accept:
+                "application/json"
             }
           }
         );
@@ -1190,7 +1564,10 @@
         await response.json();
 
 
-      if (!game || !game.title) {
+      if (
+        !game ||
+        !game.title
+      ) {
 
         throw new Error(
           "Game information is unavailable."
@@ -1199,91 +1576,114 @@
       }
 
 
+
       /* =====================================================
          GAME DATA
-      ===================================================== */
+         ===================================================== */
 
       const title =
-        String(game.title);
+        cleanText(
+          game.title
+        );
 
 
       const description =
-        String(
+        cleanText(
           game.description ||
           `Play ${title} online for free on BrainrotGames.`
         );
 
 
       const category =
-        String(
+        cleanText(
           game.category ||
           "Browser Game"
         );
 
 
       const gameUrl =
-        String(
+        cleanText(
           game.url ||
           ""
         );
 
 
+      const image =
+        cleanText(
+          game.image ||
+          game.thumbnailUrl ||
+          ""
+        );
+
+
+
       /* =====================================================
-         UPDATE PAGE CONTENT
-      ===================================================== */
+         PAGE CONTENT
+         ===================================================== */
 
       titleEl.textContent =
         title;
 
-
       descriptionEl.textContent =
         description;
-
 
       aboutEl.textContent =
         description;
 
-
       categoryEl.textContent =
         category;
 
-
       detailCategoryEl.textContent =
         category;
-
 
       breadcrumbEl.textContent =
         title;
 
 
+
       /* =====================================================
-         DYNAMIC SEO TITLE
-      ===================================================== */
+         PAGE TITLE
+         ===================================================== */
 
       document.title =
-        `${title} - Play Online | BrainrotGames`;
+        `Play ${title} Free Online - BrainrotGames`;
+
 
 
       /* =====================================================
-         DYNAMIC META DESCRIPTION
-      ===================================================== */
+         META DESCRIPTION
+         ===================================================== */
+
+      const finalDescription =
+        `Play ${title} online for free on BrainrotGames. ${description}`
+          .replace(
+            /\s+/g,
+            " "
+          )
+          .trim()
+          .slice(
+            0,
+            160
+          );
+
 
       metaDescription.setAttribute(
         "content",
-        `Play ${title} online for free on BrainrotGames. ${description}`
-          .slice(0, 160)
+        finalDescription
       );
 
 
+
       /* =====================================================
-         DYNAMIC CANONICAL
+         CORRECT CANONICAL
 
          IMPORTANT:
-         The live page uses /play, not /play.html.
-      ===================================================== */
+         Your live URL is /play
+         NOT /play.html
+         ===================================================== */
 
       const canonicalUrl =
-        `${window.location.origin}/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(slug(title))}`;
+        `https://brainrotgames.me/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(slug(title))}`;
 
 
       canonical.setAttribute(
@@ -1292,88 +1692,45 @@
       );
 
 
+
       /* =====================================================
-         VIDEO GAME STRUCTURED DATA
-      ===================================================== */
+         STRUCTURED DATA
+         ===================================================== */
 
-      const existingSchema =
-        document.getElementById("game-schema");
-
-
-      if (existingSchema) {
-
-        existingSchema.remove();
-
-      }
-
-
-      const schema =
-        document.createElement("script");
-
-
-      schema.type =
-        "application/ld+json";
-
-
-      schema.id =
-        "game-schema";
-
-
-      schema.textContent =
-        JSON.stringify({
-
-          "@context":
-            "https://schema.org",
-
-          "@type":
-            "VideoGame",
-
-          "name":
-            title,
-
-          "description":
-            description,
-
-          "genre":
-            category,
-
-          "gamePlatform":
-            "Web Browser",
-
-          "url":
-            canonicalUrl,
-
-          "isAccessibleForFree":
-            true
-
-        });
-
-
-      document.head.appendChild(
-        schema
+      addStructuredData(
+        title,
+        description,
+        category,
+        image,
+        canonicalUrl
       );
 
 
-      /* =====================================================
-         GAME URL SECURITY CHECK
-      ===================================================== */
 
-      if (!isSafeGameUrl(gameUrl)) {
+      /* =====================================================
+         GAME URL SECURITY
+         ===================================================== */
+
+      if (
+        !isSafeGameUrl(
+          gameUrl
+        )
+      ) {
 
         throw new Error(
-          "This game cannot be loaded because its game provider URL is unavailable or unsupported."
+          "This game cannot be loaded because its provider URL is unavailable or unsupported."
         );
 
       }
 
 
+
       /* =====================================================
-         LOAD GAMEPIX GAME
-      ===================================================== */
+         LOAD GAMEPIX
+         ===================================================== */
 
       frame.title =
         `${title} - BrainrotGames`;
-
 
       frame.src =
         gameUrl;
@@ -1393,21 +1750,23 @@
       );
 
 
+
       /* =====================================================
-         SHOW GAME PAGE
-      ===================================================== */
+         SHOW PAGE
+         ===================================================== */
 
       gameContent.style.display =
         "block";
 
-
       gameError.style.display =
         "none";
 
+
     } catch (error) {
 
-      console.error(error);
-
+      console.error(
+        error
+      );
 
       showError(
         error.message ||
@@ -1419,13 +1778,18 @@
   }
 
 
+
   /* =========================================================
-     INITIALIZE
-  ========================================================= */
+     START
+     ========================================================= */
+
+  setInitialSeo();
 
   loadGame();
 
 </script>
 
+
 </body>
+
 </html>

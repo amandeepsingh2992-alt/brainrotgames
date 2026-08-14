@@ -85,7 +85,7 @@ export async function onRequestGet(context) {
       group.classList.toggle('is-hidden', groupMatches === 0);
       matches += groupMatches;
     });
-    count.textContent = `${matches} categor${matches === 1 ? 'y' : 'ies'}`;
+    count.textContent = matches + ' categor' + (matches === 1 ? 'y' : 'ies');
     empty.classList.toggle('is-visible', matches === 0);
   };
   input.addEventListener('input', update);

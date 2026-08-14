@@ -50,6 +50,17 @@ export async function onRequestGet(context) {
       .trim();
   }
 
+  function replaceElementText(source, id, value) {
+    const safeValue = escapeHtml(value);
+
+    const pattern = new RegExp(
+      `(<[^>]+\\bid=["']${id}["'][^>]*>)[\\s\\S]*?(</[^>]+>)`,
+      "i"
+    );
+
+    return source.replace(pattern, `$1${safeValue}$2`);
+  }
+
   // ------------------------------------------------------------
   // GAME DATA
   // ------------------------------------------------------------
@@ -61,6 +72,8 @@ export async function onRequestGet(context) {
     : "Game";
 
   let gameDescription = "";
+  let gameCategory = "Browser Game";
+  let gameLoaded = false;
 
   if (gameId) {
     try {
@@ -83,6 +96,14 @@ export async function onRequestGet(context) {
 
         if (gameData.description) {
           gameDescription = cleanText(gameData.description);
+        }
+
+        if (gameData.category) {
+          gameCategory = cleanText(gameData.category);
+        }
+
+        if (gameData.title) {
+          gameLoaded = true;
         }
       }
     } catch (error) {
@@ -150,6 +171,65 @@ export async function onRequestGet(context) {
     /(<meta\s+name=["']description["'][^>]*\bid=["']meta-description["'][^>]*content=["'])[^"']*(["'])/i,
     `$1${escapeHtml(seoDescription)}$2`
   );
+
+  // ------------------------------------------------------------
+  // SERVER-SIDE GAME CONTENT
+  //
+  // Keep the important game-specific page content in the initial
+  // HTML response instead of requiring Google to execute JavaScript
+  // before it can see the title, description and category.
+  // ------------------------------------------------------------
+
+  if (gameId && gameLoaded) {
+    html = replaceElementText(
+      html,
+      "game-title",
+      gameTitle
+    );
+
+    html = replaceElementText(
+      html,
+      "game-description",
+      gameDescription || `Play ${gameTitle} online for free on BrainrotGames.`
+    );
+
+    html = replaceElementText(
+      html,
+      "about-game",
+      gameDescription || `Play ${gameTitle} online for free on BrainrotGames.`
+    );
+
+    html = replaceElementText(
+      html,
+      "game-category",
+      gameCategory
+    );
+
+    html = replaceElementText(
+      html,
+      "detail-category",
+      gameCategory
+    );
+
+    html = replaceElementText(
+      html,
+      "breadcrumb-title",
+      gameTitle
+    );
+
+    // The static template starts hidden while JavaScript loads the
+    // game. Since the server has already loaded the game data, expose
+    // the finished page in the initial HTML response.
+    html = html.replace(
+      /<div\s+id=["']game-content["']\s+style=["']display:none;["']>/i,
+      '<div id="game-content" style="display:block;">'
+    );
+
+    html = html.replace(
+      /<div\s+class=["']error-card["']\s+id=["']game-error["']>/i,
+      '<div class="error-card" id="game-error" style="display:none;">'
+    );
+  }
 
   return new Response(html, {
     status: 200,

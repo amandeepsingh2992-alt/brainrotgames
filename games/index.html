@@ -1,69 +1,34 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="index,follow">
-  <meta name="description" content="Browse BrainrotGames categories and discover free online browser games across action, arcade, puzzle, racing, casual, sports and more.">
-  <title>Game Categories - Free Online Browser Games | BrainrotGames</title>
-  <link rel="canonical" href="https://brainrotgames.me/games">
-  <link rel="stylesheet" href="/styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="index,follow">
+<meta name="description" content="Browse all BrainrotGames categories and discover free online browser games.">
+<title>Game Categories - Free Online Browser Games | BrainrotGames</title>
+<link rel="canonical" href="https://brainrotgames.me/games">
+<link rel="stylesheet" href="/styles.css">
+<style>
+.category-page{padding-bottom:72px}.category-hero{max-width:820px;margin:0 auto 36px;text-align:center}.category-hero h1{margin:4px 0 10px;font-size:clamp(44px,6vw,72px);line-height:1.02;letter-spacing:-.045em}.category-hero p{max-width:720px;margin:0 auto;color:var(--muted);font-size:17px;line-height:1.6}.category-search{max-width:720px;margin:24px auto 0;position:relative}.category-search input{box-sizing:border-box;width:100%;min-height:52px;padding:0 18px 0 48px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);outline:none}.category-search input:focus{border-color:var(--border-hover);box-shadow:0 0 0 3px rgba(109,93,252,.14)}.category-search svg{position:absolute;left:17px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}.category-meta{display:flex;justify-content:space-between;gap:12px;max-width:720px;margin:9px auto 0;color:var(--muted);font-size:12px}.category-featured{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:46px}.category-feature{display:flex;align-items:center;gap:12px;min-height:76px;padding:14px 15px;border:1px solid var(--border);border-radius:16px;background:rgba(15,22,38,.8);color:var(--text);text-decoration:none}.category-feature:hover{border-color:var(--border-hover);transform:translateY(-2px)}.category-icon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:rgba(109,93,252,.12);font-size:21px}.category-copy{display:grid;gap:3px;min-width:0}.category-copy strong{font-size:15px}.category-copy span{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.category-arrow{margin-left:auto;color:var(--accent2);font-size:18px}.category-heading{display:flex;justify-content:space-between;align-items:end;margin-bottom:16px}.category-heading h2{margin:0;font-size:25px}.category-heading p{margin:0;color:var(--muted);font-size:13px}.category-groups{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.category-group{padding:15px;border:1px solid var(--border);border-radius:15px;background:rgba(15,22,38,.68);min-width:0}.category-group h2{margin:0 0 8px;padding-bottom:8px;border-bottom:1px solid var(--border);font-size:14px;color:var(--accent2);letter-spacing:.08em}.category-list{display:grid;gap:2px}.category-link{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 7px;border-radius:8px;color:var(--muted);font-size:13px;line-height:1.3;text-decoration:none}.category-link:hover{background:rgba(109,93,252,.08);color:var(--text)}.category-link span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.category-link span:last-child{opacity:0}.category-link:hover span:last-child{opacity:1}.category-empty{display:none;padding:32px;text-align:center;border:1px dashed var(--border);border-radius:15px;color:var(--muted)}.category-empty.show{display:block}.category-info{margin-top:42px}.category-info p{color:var(--muted)}@media(max-width:900px){.category-groups{grid-template-columns:repeat(3,minmax(0,1fr))}.category-featured{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.category-page{padding-bottom:42px}.category-hero{text-align:left}.category-hero p{font-size:15px}.category-featured{grid-template-columns:1fr;margin-bottom:34px}.category-groups{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.category-group{padding:11px}.category-link{font-size:12px}.category-heading{display:block}.category-heading p{margin-top:4px}.category-meta{font-size:11px}}@media(max-width:390px){.category-groups{grid-template-columns:1fr}}
+</style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="/" aria-label="BrainrotGames home">
-        <span class="brand-mark">BG</span>
-        <span>Brainrot<span>Games</span></span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href="/">Home</a>
-        <a href="/#games">Games</a>
-        <a href="/games">Categories</a>
-        <a href="/#about">About</a>
-      </nav>
-    </div>
-  </header>
-
-  <main class="container section">
-    <p class="eyebrow">BROWSE</p>
-    <h1>Game Categories</h1>
-    <p class="section-intro">Explore free browser games by genre. Choose a category to see games available to play online.</p>
-
-    <div class="discovery-grid">
-      <a class="discovery-card" href="/games/action"><span class="discovery-icon">⚔️</span><div><strong>Action Games</strong><span>Fast-paced browser games and challenges</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/arcade"><span class="discovery-icon">🕹️</span><div><strong>Arcade Games</strong><span>Quick-play skill and score games</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/puzzle"><span class="discovery-icon">🧩</span><div><strong>Puzzle Games</strong><span>Logic, matching and brain games</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/racing"><span class="discovery-icon">🏎️</span><div><strong>Racing Games</strong><span>Cars, speed, driving and drifting</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/casual"><span class="discovery-icon">🎮</span><div><strong>Casual Games</strong><span>Easy-to-start games for quick sessions</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/sports"><span class="discovery-icon">🏀</span><div><strong>Sports Games</strong><span>Competitive and arcade-style sports</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/adventure"><span class="discovery-icon">🗺️</span><div><strong>Adventure Games</strong><span>Explore, discover and overcome challenges</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/strategy"><span class="discovery-icon">♟️</span><div><strong>Strategy Games</strong><span>Planning, tactics and decision-making</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/simulation"><span class="discovery-icon">🏗️</span><div><strong>Simulation Games</strong><span>Build, manage and experiment</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/board"><span class="discovery-icon">♟</span><div><strong>Board Games</strong><span>Classic and modern board-style games</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/card"><span class="discovery-icon">🃏</span><div><strong>Card Games</strong><span>Quick matches and strategic play</span></div><span class="discovery-arrow">→</span></a>
-      <a class="discovery-card" href="/games/word"><span class="discovery-icon">🔤</span><div><strong>Word Games</strong><span>Vocabulary and brain-training games</span></div><span class="discovery-arrow">→</span></a>
-    </div>
-
-    <section class="content-panel" style="margin-top:40px;">
-      <p class="eyebrow">BRAINROTGAMES</p>
-      <h2>Play Free Browser Games</h2>
-      <p>Browse categories above to find games that match your interests. Games open directly in your browser, with no separate installation required for supported titles.</p>
-      <p>Game availability and content may change because games are supplied through third-party publishers and distributors.</p>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div>
-      <nav class="footer-links" aria-label="Footer navigation">
-        <a href="/about.html">About Us</a>
-        <a href="/contact.html">Contact Us</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/cookies.html">Cookie Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-      </nav>
-    </div>
-  </footer>
+<header class="site-header"><div class="container nav"><a class="brand" href="/" aria-label="BrainrotGames home"><span class="brand-mark">BG</span><span>Brainrot<span>Games</span></span></a><nav aria-label="Main navigation"><a href="/">Home</a><a href="/#games">Games</a><a href="/games" aria-current="page">Categories</a><a href="/#about">About</a></nav></div></header>
+<main class="container section category-page">
+<section class="category-hero"><p class="eyebrow">BROWSE GAMES</p><h1>Find Your Game</h1><p>Choose a genre below or search all 147 categories. Everything is grouped alphabetically so you can find what you want quickly.</p><div class="category-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="category-search" type="search" placeholder="Search categories…" autocomplete="off"></div><div class="category-meta"><span id="count">147 categories</span><span>Press a category to start browsing</span></div></section>
+<section><div class="category-heading"><div><h2>Popular categories</h2><p>Start here for the quickest route to a game.</p></div></div><div class="category-featured"><a class="category-feature" href="/games/puzzle"><span class="category-icon">🧩</span><span class="category-copy"><strong>Puzzle Games</strong><span>Logic, matching and brain games</span></span><span class="category-arrow">→</span></a><a class="category-feature" href="/games/action"><span class="category-icon">⚔️</span><span class="category-copy"><strong>Action Games</strong><span>Fast-paced challenges</span></span><span class="category-arrow">→</span></a><a class="category-feature" href="/games/racing"><span class="category-icon">🏎️</span><span class="category-copy"><strong>Racing Games</strong><span>Cars, speed and drifting</span></span><span class="category-arrow">→</span></a><a class="category-feature" href="/games/sports"><span class="category-icon">🏀</span><span class="category-copy"><strong>Sports Games</strong><span>Competitive sports games</span></span><span class="category-arrow">→</span></a><a class="category-feature" href="/games/adventure"><span class="category-icon">🗺️</span><span class="category-copy"><strong>Adventure Games</strong><span>Explore and overcome challenges</span></span><span class="category-arrow">→</span></a><a class="category-feature" href="/games/casual"><span class="category-icon">🎮</span><span class="category-copy"><strong>Casual Games</strong><span>Quick games, easy to start</span></span><span class="category-arrow">→</span></a></div></section>
+<section><div class="category-heading"><div><h2>All categories</h2><p>Browse alphabetically across the full GamePix category feed.</p></div></div><div class="category-groups" id="groups"></div><div class="category-empty" id="empty"><strong>No categories found</strong><br>Try a shorter search such as “car”, “puzzle” or “sport”.</div></section>
+<section class="content-panel category-info"><p class="eyebrow">BRAINROTGAMES</p><h2>Play Free Browser Games</h2><p>Choose a category to discover matching games. Supported games open directly in your browser without a separate installation.</p><p>Game availability and content may change because games are supplied through third-party publishers and distributors.</p></section>
+</main>
+<footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav></div></footer>
+<script>
+const categories=["2048","Action","Addictive","Adventure","Airplane","Animal","Anime","Arcade","Archery","Ball","Baseball","Basketball","Battle","Battle Royale","Bejeweled","Bike","Block","Board","Bowling","Boxing","Brain","Bubble Shooter","Building","Car","Card","Casual","Cats","Checkers","Chess","Christmas","City Building","Classics","Clicker","Coco","Coding","Coloring","Cooking","Cool","Crazy","Cricket","Dinosaur","Dirt Bike","Dragons","Drawing","Dress Up","Drifting","Driving","Educational","Escape","Family","Farming","Fashion","Fighting","Fire And Water","First Person Shooter","Fishing","Flash","Flight","Fun","Games For Girls","Gangster","Gdevelop","Golf","Granny","Gun","Hair Salon","Halloween","Helicopter","Hidden Object","Hockey","Horror","Horse","Hunting","Hyper Casual","Idle","Io","Jewel","Jigsaw Puzzles","Jumping","Knight","Mahjong","Makeup","Management","Mario","Match 3","Math","Memory","Minecraft","Mining","Mmorpg","Mobile","Money","Monster","Multiplayer","Music","Naval","Ninja","Ninja Turtle","Offroad","Open World","Parking","Parkour","Piano","Pirates","Pixel","Platformer","Police","Pool","Puzzle","Racing","Restaurant","Retro","Robots","Rpg","Runner","Scary","Scrabble","Sharks","Shooter","Simulation","Skateboard","Skibidi Toilet","Skill","Snake","Sniper","Soccer","Solitaire","Spinner","Sports","Stickman","Strategy","Surgery","Survival","Sword","Tanks","Tap","Tetris","Trivia","Truck","Two Player","Tycoon","War","Word","World Cup","Worm","Wrestling","Zombie"];
+const slug=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const groups={}; categories.forEach(c=>{const k=/^[0-9]/.test(c)?'0–9':c[0].toUpperCase();(groups[k]??=[]).push(c)});
+const root=document.getElementById('groups');
+Object.keys(groups).sort((a,b)=>a==='0–9'?-1:b==='0–9'?1:a.localeCompare(b)).forEach(letter=>{const section=document.createElement('section');section.className='category-group';section.dataset.group=letter;section.innerHTML='<h2>'+letter+'</h2><div class="category-list"></div>';const list=section.querySelector('.category-list');groups[letter].forEach(c=>{const a=document.createElement('a');a.className='category-link';a.href='/games/'+slug(c);a.dataset.category=c.toLowerCase();a.innerHTML='<span>'+c+' Games</span><span>→</span>';list.appendChild(a)});root.appendChild(section)});
+const input=document.getElementById('category-search'),count=document.getElementById('count'),empty=document.getElementById('empty');
+input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();let n=0;root.querySelectorAll('.category-group').forEach(g=>{let m=0;g.querySelectorAll('.category-link').forEach(a=>{const show=!q||a.dataset.category.includes(q);a.hidden=!show;if(show)m++});g.hidden=m===0;n+=m});count.textContent=n+' categor'+(n===1?'y':'ies');empty.classList.toggle('show',n===0)});
+</script>
 </body>
 </html>

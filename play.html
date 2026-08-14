@@ -26,10 +26,11 @@
     content="Play free browser games online on BrainrotGames."
   >
 
+  <!-- Canonical is updated dynamically for each game -->
   <link
     rel="canonical"
     id="canonical-url"
-    href="https://brainrotgames.me/play.html"
+    href="https://brainrotgames.me/play"
   >
 
   <link
@@ -404,7 +405,6 @@
 <body>
 
 <header class="site-header">
-
   <div class="container nav">
 
     <a
@@ -420,11 +420,10 @@
       <a href="/">Home</a>
       <a href="/#games">Games</a>
       <a href="/#categories">Categories</a>
-      <a href="/#about">About</a>
+      <a href="/about">About</a>
     </nav>
 
   </div>
-
 </header>
 
 
@@ -566,7 +565,6 @@
               </h2>
 
               <ul>
-
                 <li>
                   Make sure your browser is up to date.
                 </li>
@@ -584,7 +582,6 @@
                   Some games may work better on desktop or mobile
                   depending on their controls.
                 </li>
-
               </ul>
 
             </section>
@@ -750,13 +747,11 @@
             <section>
 
               <div class="notice">
-
                 Some games available on BrainrotGames are supplied
                 through third-party game publishers, distributors or
                 technology providers. Game titles, artwork, trademarks
                 and related intellectual property remain the property
                 of their respective owners.
-
               </div>
 
             </section>
@@ -790,7 +785,7 @@
               Categories
             </a>
 
-            <a href="/#about">
+            <a href="/about">
               About Us
             </a>
 
@@ -807,23 +802,23 @@
 
           <div class="sidebar-links">
 
-            <a href="/about.html">
+            <a href="/about">
               About Us
             </a>
 
-            <a href="/contact.html">
+            <a href="/contact">
               Contact Us
             </a>
 
-            <a href="/privacy.html">
+            <a href="/privacy">
               Privacy Policy
             </a>
 
-            <a href="/cookies.html">
+            <a href="/cookies">
               Cookie Policy
             </a>
 
-            <a href="/terms.html">
+            <a href="/terms">
               Terms of Service
             </a>
 
@@ -897,23 +892,23 @@
       aria-label="Footer navigation"
     >
 
-      <a href="/about.html">
+      <a href="/about">
         About Us
       </a>
 
-      <a href="/contact.html">
+      <a href="/contact">
         Contact Us
       </a>
 
-      <a href="/privacy.html">
+      <a href="/privacy">
         Privacy Policy
       </a>
 
-      <a href="/cookies.html">
+      <a href="/cookies">
         Cookie Policy
       </a>
 
-      <a href="/terms.html">
+      <a href="/terms">
         Terms of Service
       </a>
 
@@ -941,138 +936,285 @@
 
 
 <script>
-  const params = new URLSearchParams(window.location.search);
-  const gameId = params.get("id");
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
 
-  const gameContent = document.getElementById("game-content");
-  const gameError = document.getElementById("game-error");
+  const gameId =
+    params.get("id");
 
-  const titleEl = document.getElementById("game-title");
-  const descriptionEl = document.getElementById("game-description");
-  const aboutEl = document.getElementById("about-game");
-  const categoryEl = document.getElementById("game-category");
-  const detailCategoryEl = document.getElementById("detail-category");
-  const breadcrumbEl = document.getElementById("breadcrumb-title");
-  const frame = document.getElementById("game-frame");
-  const playerLoading = document.getElementById("player-loading");
-  const metaDescription = document.getElementById("meta-description");
-  const canonical = document.getElementById("canonical-url");
+  const gameContent =
+    document.getElementById(
+      "game-content"
+    );
+
+  const gameError =
+    document.getElementById(
+      "game-error"
+    );
+
+  const titleEl =
+    document.getElementById(
+      "game-title"
+    );
+
+  const descriptionEl =
+    document.getElementById(
+      "game-description"
+    );
+
+  const aboutEl =
+    document.getElementById(
+      "about-game"
+    );
+
+  const categoryEl =
+    document.getElementById(
+      "game-category"
+    );
+
+  const detailCategoryEl =
+    document.getElementById(
+      "detail-category"
+    );
+
+  const breadcrumbEl =
+    document.getElementById(
+      "breadcrumb-title"
+    );
+
+  const frame =
+    document.getElementById(
+      "game-frame"
+    );
+
+  const playerLoading =
+    document.getElementById(
+      "player-loading"
+    );
+
+  const metaDescription =
+    document.getElementById(
+      "meta-description"
+    );
+
+  const canonical =
+    document.getElementById(
+      "canonical-url"
+    );
+
 
   function escapeHtml(value = "") {
-    return String(value).replace(/[&<>"']/g, char => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[char]));
+    return String(value).replace(
+      /[&<>"']/g,
+      (char) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        })[char]
+    );
   }
+
 
   function slug(value = "") {
     return String(value)
       .toLowerCase()
       .trim()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        "");
   }
 
+
   function showError(message) {
-    gameContent.style.display = "none";
+    gameContent.style.display =
+      "none";
 
     gameError.innerHTML = `
       <h1>Game Unavailable</h1>
-      <p>${escapeHtml(message)}</p>
+
       <p>
-        <a href="/" style="color:#22d3c5;">
+        ${escapeHtml(message)}
+      </p>
+
+      <p>
+        <a
+          href="/"
+          style="color:#22d3c5;"
+        >
           Return to BrainrotGames
         </a>
       </p>
     `;
 
-    gameError.style.display = "block";
+    gameError.style.display =
+      "block";
   }
+
 
   function isSafeGameUrl(value) {
     try {
-      const url = new URL(value);
+      const url =
+        new URL(value);
 
       return (
         url.protocol === "https:" &&
         (
-          url.hostname === "games.gamepix.com" ||
-          url.hostname.endsWith(".gamepix.com")
+          url.hostname ===
+            "games.gamepix.com" ||
+          url.hostname.endsWith(
+            ".gamepix.com"
+          )
         )
       );
+
     } catch {
       return false;
     }
   }
 
+
   async function loadGame() {
 
     if (!gameId) {
-      showError("No game was specified.");
+      showError(
+        "No game was specified."
+      );
       return;
     }
 
+
     try {
 
-      const response = await fetch(
-        `/api/game?id=${encodeURIComponent(gameId)}`,
-        {
-          headers: {
-            Accept: "application/json"
+      const response =
+        await fetch(
+          `/api/game?id=${encodeURIComponent(
+            gameId
+          )}`,
+          {
+            headers: {
+              Accept:
+                "application/json"
+            }
           }
-        }
-      );
+        );
+
 
       if (!response.ok) {
-        throw new Error("Game information could not be loaded.");
+        throw new Error(
+          "Game information could not be loaded."
+        );
       }
 
-      const game = await response.json();
 
-      if (!game || !game.title) {
-        throw new Error("Game information is unavailable.");
+      const game =
+        await response.json();
+
+
+      if (
+        !game ||
+        !game.title
+      ) {
+        throw new Error(
+          "Game information is unavailable."
+        );
       }
 
-      const title = String(game.title);
-      const description = String(
-        game.description ||
-        `Play ${title} online for free on BrainrotGames.`
-      );
 
-      const category = String(
-        game.category ||
-        "Browser Game"
-      );
+      const title =
+        String(game.title);
 
-      const gameUrl = String(
-        game.url ||
-        ""
-      );
 
-      titleEl.textContent = title;
+      const description =
+        String(
+          game.description ||
+          `Play ${title} online for free on BrainrotGames.`
+        );
 
-      descriptionEl.textContent = description;
 
-      aboutEl.textContent = description;
+      const category =
+        String(
+          game.category ||
+          "Browser Game"
+        );
 
-      categoryEl.textContent = category;
 
-      detailCategoryEl.textContent = category;
+      const gameUrl =
+        String(
+          game.url || ""
+        );
 
-      breadcrumbEl.textContent = title;
 
-      document.title = `${title} - Play Online | BrainrotGames`;
+      /*
+       * Populate visible content.
+       */
+
+      titleEl.textContent =
+        title;
+
+      descriptionEl.textContent =
+        description;
+
+      aboutEl.textContent =
+        description;
+
+      categoryEl.textContent =
+        category;
+
+      detailCategoryEl.textContent =
+        category;
+
+      breadcrumbEl.textContent =
+        title;
+
+
+      /*
+       * Dynamic SEO title.
+       */
+
+      document.title =
+        `${title} - Play Online | BrainrotGames`;
+
+
+      /*
+       * Dynamic meta description.
+       */
+
+      const seoDescription =
+        `Play ${title} online for free on BrainrotGames. ${description}`
+          .replace(/\s+/g, " ")
+          .slice(0, 160);
+
 
       metaDescription.setAttribute(
         "content",
-        `Play ${title} online for free on BrainrotGames. ${description}`.slice(0, 160)
+        seoDescription
       );
 
+
+      /*
+       * IMPORTANT:
+       * Public game URLs use /play.
+       *
+       * Example:
+       * https://brainrotgames.me/play?id=GAME_ID&title=game-name
+       */
+
       const canonicalUrl =
-        `${window.location.origin}/play.html?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(slug(title))}`;
+        `${window.location.origin}/play?id=${encodeURIComponent(
+          gameId
+        )}&title=${encodeURIComponent(
+          slug(title)
+        )}`;
+
 
       canonical.setAttribute(
         "href",
@@ -1085,50 +1227,95 @@
        */
 
       const existingSchema =
-        document.getElementById("game-schema");
+        document.getElementById(
+          "game-schema"
+        );
+
 
       if (existingSchema) {
         existingSchema.remove();
       }
 
-      const schema = document.createElement("script");
 
-      schema.type = "application/ld+json";
-      schema.id = "game-schema";
+      const schema =
+        document.createElement(
+          "script"
+        );
 
-      schema.textContent = JSON.stringify({
-        "@context": "https://schema.org",
-        "@type": "VideoGame",
-        "name": title,
-        "description": description,
-        "genre": category,
-        "gamePlatform": "Web Browser",
-        "url": canonicalUrl,
-        "isAccessibleForFree": true
-      });
 
-      document.head.appendChild(schema);
+      schema.type =
+        "application/ld+json";
+
+      schema.id =
+        "game-schema";
+
+
+      schema.textContent =
+        JSON.stringify({
+          "@context":
+            "https://schema.org",
+
+          "@type":
+            "VideoGame",
+
+          "name":
+            title,
+
+          "description":
+            description,
+
+          "genre":
+            category,
+
+          "gamePlatform":
+            "Web Browser",
+
+          "url":
+            canonicalUrl,
+
+          "isAccessibleForFree":
+            true
+        });
+
+
+      document.head.appendChild(
+        schema
+      );
 
 
       /*
-       * Only allow GamePix HTTPS URLs.
-       * This prevents arbitrary iframe URLs from being loaded.
+       * Only allow HTTPS GamePix URLs.
+       * This prevents arbitrary iframe URLs
+       * from being loaded.
        */
 
-      if (!isSafeGameUrl(gameUrl)) {
+      if (
+        !isSafeGameUrl(
+          gameUrl
+        )
+      ) {
         throw new Error(
           "This game cannot be loaded because its game provider URL is unavailable or unsupported."
         );
       }
 
-      frame.title = `${title} - BrainrotGames`;
 
-      frame.src = gameUrl;
+      /*
+       * Load the game.
+       */
+
+      frame.title =
+        `${title} - BrainrotGames`;
+
+      frame.src =
+        gameUrl;
+
 
       frame.addEventListener(
         "load",
         () => {
-          playerLoading.style.display = "none";
+          playerLoading.style.display =
+            "none";
         },
         {
           once: true
@@ -1136,22 +1323,30 @@
       );
 
 
-      gameContent.style.display = "block";
+      /*
+       * Show the actual page.
+       */
 
-      gameError.style.display = "none";
+      gameContent.style.display =
+        "block";
+
+      gameError.style.display =
+        "none";
+
 
     } catch (error) {
 
-      console.error(error);
+      console.error(
+        error
+      );
 
       showError(
         error.message ||
         "We were unable to load this game."
       );
-
     }
-
   }
+
 
   loadGame();
 </script>

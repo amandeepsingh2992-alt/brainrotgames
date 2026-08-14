@@ -50,39 +50,39 @@ function slug(value = "") {
    NORMALIZE GAME DATA
 ========================= */
 
-function normalizeGame(game) {
+function normalizeGame(g) {
   return {
     id:
-      game.id ??
-      game.namespace ??
+      g.id ??
+      g.namespace ??
       "",
 
     title:
-      game.title ??
+      g.title ??
       "Untitled game",
 
     description:
-      game.description ??
+      g.description ??
       "",
 
     category:
-      game.category ??
+      g.category ??
       "Other",
 
     image:
-      game.banner_image ||
-      game.image ||
-      game.thumbnailUrl ||
-      game.thumbnailUrl100 ||
+      g.banner_image ||
+      g.image ||
+      g.thumbnailUrl ||
+      g.thumbnailUrl100 ||
       "",
 
     url:
-      game.url ||
-      game.game_url ||
+      g.url ||
+      g.game_url ||
       "",
 
-    width: game.width,
-    height: game.height
+    width: g.width,
+    height: g.height
   };
 }
 
@@ -92,13 +92,12 @@ function normalizeGame(game) {
 ========================= */
 
 async function fetchGames(page = 1, category = "All") {
-
   const params = new URLSearchParams({
     page: String(page),
     category
   });
 
-  const response = await fetch(
+  const res = await fetch(
     `/api/games?${params.toString()}`,
     {
       headers: {
@@ -107,13 +106,13 @@ async function fetchGames(page = 1, category = "All") {
     }
   );
 
-  if (!response.ok) {
+  if (!res.ok) {
     throw new Error(
-      `Feed request failed (${response.status})`
+      `Feed request failed (${res.status})`
     );
   }
 
-  return response.json();
+  return res.json();
 }
 
 
@@ -125,12 +124,11 @@ let cachedCategories = [];
 
 
 function renderCategories(games) {
-
   const categories = [
     "All",
     ...new Set(
       games
-        .map((game) => game.category)
+        .map((g) => g.category)
         .filter(Boolean)
     )
   ].slice(0, 18);
@@ -160,12 +158,12 @@ function renderCategories(games) {
 
   categoryRow
     .querySelectorAll(".category")
-    .forEach((button) => {
+    .forEach((btn) => {
 
-      button.addEventListener("click", () => {
+      btn.addEventListener("click", () => {
 
         const selectedCategory =
-          button.dataset.category;
+          btn.dataset.category;
 
         state.category =
           selectedCategory;
@@ -187,6 +185,10 @@ function renderCategories(games) {
         statusEl.textContent =
           "Loading games…";
 
+        /*
+         * Keep category buttons visible
+         * while the new feed loads.
+         */
         renderCategories(
           cachedCategories.length
             ? cachedCategories
@@ -205,8 +207,7 @@ function renderCategories(games) {
 ========================= */
 
 function filteredGames() {
-
-  const query =
+  const q =
     state.search
       .trim()
       .toLowerCase();
@@ -218,10 +219,10 @@ function filteredGames() {
       game.category === state.category;
 
     const searchMatches =
-      !query ||
+      !q ||
       `${game.title} ${game.description} ${game.category}`
         .toLowerCase()
-        .includes(query);
+        .includes(q);
 
     return (
       categoryMatches &&
@@ -236,7 +237,6 @@ function filteredGames() {
 ========================= */
 
 function render() {
-
   const games =
     filteredGames();
 
@@ -244,8 +244,12 @@ function render() {
 
     grid.innerHTML = `
       <div class="empty">
-        <strong>No games found.</strong>
+        <strong>
+          No games found.
+        </strong>
+
         <br><br>
+
         Try another search or category.
       </div>
     `;
@@ -259,7 +263,7 @@ function render() {
 
       /*
        * IMPORTANT:
-       * Use the actual game-page URL.
+       * Game pages use /play.html
        */
       const gameUrl =
         `/play.html?id=${encodeURIComponent(
@@ -330,7 +334,6 @@ function render() {
 
         </article>
       `;
-
     })
     .join("");
 }
@@ -386,13 +389,12 @@ async function load() {
     for (const game of incoming) {
 
       /*
-       * Ignore malformed records without
-       * a usable GamePix identifier.
+       * Ignore malformed records
+       * without an identifier.
        */
       if (!game.id) {
         continue;
       }
-
 
       const key =
         String(game.id);
@@ -403,14 +405,13 @@ async function load() {
         state.games.push(game);
 
         seen.add(key);
-
       }
-
     }
 
 
     /*
-     * Keep a copy for category navigation.
+     * Keep a copy of games available
+     * for category navigation.
      */
     cachedCategories =
       state.games.slice();
@@ -428,14 +429,14 @@ async function load() {
 
 
     /*
-     * Render categories on initial load.
+     * Render categories on initial
+     * catalogue load.
      */
     if (state.page === 1) {
 
       renderCategories(
         state.games
       );
-
     }
 
 
@@ -457,9 +458,9 @@ async function load() {
         ? ""
         : "none";
 
-  } catch (error) {
+  } catch (err) {
 
-    console.error(error);
+    console.error(err);
 
     statusEl.textContent =
       "Game feed unavailable";
@@ -480,13 +481,11 @@ async function load() {
 
         </div>
       `;
-
     }
 
   } finally {
 
     state.loading = false;
-
   }
 }
 
@@ -503,7 +502,6 @@ searchEl.addEventListener(
       event.target.value;
 
     render();
-
   }
 );
 
@@ -534,12 +532,13 @@ clearFilter.addEventListener(
     statusEl.textContent =
       "Loading games…";
 
+
     renderCategories(
       cachedCategories
     );
 
-    load();
 
+    load();
   }
 );
 
@@ -562,7 +561,6 @@ loadMore.addEventListener(
     state.page += 1;
 
     load();
-
   }
 );
 

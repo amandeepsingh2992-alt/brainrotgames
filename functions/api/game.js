@@ -10,13 +10,26 @@ function json(data, status = 200, cache = CACHE_TTL) {
     }
   });
 }
-
 function extractItems(data) {
   return Array.isArray(data?.items) ? data.items
     : Array.isArray(data?.games) ? data.games
     : Array.isArray(data?.results) ? data.results
     : Array.isArray(data?.data) ? data.data
     : [];
+}
+async function findInPages(start, end, id) {
+  const responses = await Promise.all(
+    Array.from({ length: end - start + 1 }, (_, i) => fetch(FEED + (start + i), {
+      headers: { Accept: "application/json" },
+      cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
+    }).catch(() => null))
+  );
+  for (const response of responses) {
+    if (!response?.ok) continue;
+    const game = extractItems(await response.json()).find(g => String(g.id ?? g.namespace ?? "") === String(id));
+    if (game) return game;
+  }
+  return null;
 }
 
 export async function onRequestGet(context) {
@@ -30,23 +43,9 @@ export async function onRequestGet(context) {
   if (cached) return cached;
 
   try {
-    // Search five pages concurrently instead of making ten sequential requests.
-    const responses = await Promise.all(
-      Array.from({ length: 5 }, (_, i) => fetch(FEED + (i + 1), {
-        headers: { Accept: "application/json" },
-        cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
-      }).catch(() => null))
-    );
-
-    let game = null;
-    for (const response of responses) {
-      if (!response?.ok) continue;
-      const data = await response.json();
-      const items = extractItems(data);
-      game = items.find(g => String(g.id ?? g.namespace ?? "") === String(id));
-      if (game) break;
-    }
-
+    // Fast path: five pages concurrently. Fall back to pages 6-10 only when needed.
+    let game = await findInPages(1, 5, id);
+    if (!game) game = await findInPages(6, 10, id);
     if (!game) return json({ error: "Game not found" }, 404, 60);
 
     const result = json({
@@ -59,7 +58,6 @@ export async function onRequestGet(context) {
       width: game.width,
       height: game.height
     });
-
     context.waitUntil(cache.put(cacheKey, result.clone()));
     return result;
   } catch (error) {

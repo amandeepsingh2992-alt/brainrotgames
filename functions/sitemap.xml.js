@@ -2,7 +2,7 @@ const FEED =
   "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 
 const SITE_URL = "https://brainrotgames.me";
-const MAX_PAGES = 1000;
+const MAX_PAGES = 100;
 
 function escapeXml(value = "") {
   return String(value).replace(/[<>&'\"]/g, (char) => {

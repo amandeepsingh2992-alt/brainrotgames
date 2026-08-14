@@ -1,7 +1,8 @@
 const SITE_URL = "https://brainrotgames.me";
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
-const MAX_FEED_PAGES = 30;
+const MAX_FEED_PAGES = 10;
 const BATCH = 5;
+const CACHE_TTL = 1800;
 
 const CATEGORY_COPY = {
   action: "Fast-paced browser games with combat, reflexes and quick challenges.",
@@ -19,9 +20,7 @@ const CATEGORY_COPY = {
 };
 
 function escapeHtml(value = "") {
-  return String(value).replace(/[&<>\"']/g, c => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
-  }[c]));
+  return String(value).replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[c]));
 }
 
 function slug(value = "") {
@@ -42,23 +41,19 @@ function categoryValues(game) {
   const values = [];
   const add = value => {
     if (typeof value === "string") values.push(value);
-    else if (value && typeof value === "object") {
-      values.push(value.slug, value.name, value.title, value.category);
-    }
+    else if (value && typeof value === "object") values.push(value.slug, value.name, value.title, value.category);
   };
   add(game?.category);
   for (const key of ["categories", "tags", "genres"]) {
     const value = game?.[key];
-    if (Array.isArray(value)) value.forEach(add);
-    else add(value);
+    if (Array.isArray(value)) value.forEach(add); else add(value);
   }
   return values.filter(Boolean);
 }
 
 function matches(game, requested) {
   return categoryValues(game).some(value => {
-    const s = slug(value);
-    const r = slug(requested);
+    const s = slug(value), r = slug(requested);
     if (categoryEquivalent(s, r)) return true;
     return s.includes(`-${r}-`) || s.startsWith(`${r}-`) || s.endsWith(`-${r}`);
   });
@@ -77,7 +72,10 @@ async function fetchPage(page, requested = "") {
   try {
     const url = new URL(FEED + page);
     if (requested) url.searchParams.set("category", requested);
-    const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
+    const response = await fetch(url.toString(), {
+      headers: { Accept: "application/json" },
+      cf: { cacheTtl: 900, cacheEverything: true }
+    });
     if (!response.ok) return [];
     return extractGames(await response.json());
   } catch (error) {
@@ -90,13 +88,9 @@ async function fetchCategoryGames(requested) {
   const seen = new Set();
   const found = [];
 
-  // First ask GamePix directly for the requested category. This is important
-  // for sparse categories that may not occur in the first feed pages.
   for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
-    const pages = [];
-    for (let p = start; p < start + BATCH && p <= MAX_FEED_PAGES; p++) pages.push(p);
+    const pages = Array.from({ length: Math.min(BATCH, MAX_FEED_PAGES - start + 1) }, (_, i) => start + i);
     const results = await Promise.all(pages.map(p => fetchPage(p, requested)));
-
     for (const games of results) {
       for (const game of games) {
         const id = String(game?.id ?? game?.namespace ?? "");
@@ -108,12 +102,11 @@ async function fetchCategoryGames(requested) {
     }
   }
 
-  // Fallback: some feed versions ignore the category parameter. Search the
-  // unfiltered feed too, using all known category/tag/genre fields.
+  // Some feed versions may ignore the category parameter. Search a smaller
+  // unfiltered window as a fallback rather than blocking on 30+ upstream calls.
   if (!found.length) {
     for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
-      const pages = [];
-      for (let p = start; p < start + BATCH && p <= MAX_FEED_PAGES; p++) pages.push(p);
+      const pages = Array.from({ length: Math.min(BATCH, MAX_FEED_PAGES - start + 1) }, (_, i) => start + i);
       const results = await Promise.all(pages.map(p => fetchPage(p)));
       for (const games of results) {
         for (const game of games) {
@@ -140,18 +133,24 @@ function gameCard(game) {
   const title = game.title || "Untitled game";
   const category = game.category || "Browser Game";
   const image = game.banner_image || game.image || game.thumbnailUrl || game.thumbnailUrl100 || game.thumbnail_url || "";
-  return `<article class="game-card"><a href="${escapeHtml(gameUrl(game))}" aria-label="Play ${escapeHtml(title)}"><div class="thumb"><div class="fallback">🎮</div>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" referrerpolicy="no-referrer">` : ""}</div><div class="card-body"><div class="game-title">${escapeHtml(title)}</div><div class="game-meta"><span>${escapeHtml(category)}</span><span>▶ Play</span></div><div class="play-btn">Play Now</div></div></a></article>`;
+  const dimensions = game.width && game.height ? ` width="${Number(game.width)}" height="${Number(game.height)}"` : "";
+  return `<article class="game-card"><a href="${escapeHtml(gameUrl(game))}" aria-label="Play ${escapeHtml(title)}"><div class="thumb"><div class="fallback">🎮</div>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"${dimensions} referrerpolicy="no-referrer">` : ""}</div><div class="card-body"><div class="game-title">${escapeHtml(title)}</div><div class="game-meta"><span>${escapeHtml(category)}</span><span>▶ Play</span></div><div class="play-btn">Play Now</div></div></a></article>`;
 }
 
 export async function onRequestGet(context) {
+  const requestUrl = new URL(context.request.url);
   const categorySlug = slug(context.params.category || "");
   if (!categorySlug) return Response.redirect(`${SITE_URL}/games`, 301);
+
+  const cacheKey = new Request(requestUrl.toString(), { method: "GET" });
+  const cache = caches.default;
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
 
   const category = categorySlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const description = CATEGORY_COPY[categorySlug] || `Browse ${category} browser games and play them online for free.`;
   let games = [];
-  try { games = await fetchCategoryGames(categorySlug); }
-  catch (error) { console.error("Category page error:", error); }
+  try { games = await fetchCategoryGames(categorySlug); } catch (error) { console.error("Category page error:", error); }
 
   const title = `${category} Games - Play Free Online | BrainrotGames`;
   const canonical = `${SITE_URL}/games/${categorySlug}`;
@@ -162,5 +161,13 @@ export async function onRequestGet(context) {
 <main class="container section"><div class="breadcrumbs" style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:24px"><a href="/">Home</a><span>/</span><a href="/games">Categories</a><span>/</span><span>${escapeHtml(category)}</span></div><div class="section-head"><div><p class="eyebrow">BROWSER GAMES</p><h1>${escapeHtml(category)} Games</h1></div></div><p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p><div class="game-grid">${gameMarkup}</div><section class="content-panel" style="margin-top:40px"><p class="eyebrow">ABOUT THIS CATEGORY</p><h2>Free ${escapeHtml(category)} Browser Games</h2><p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p><p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p></section></main>
 <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav></div></footer></body></html>`;
 
-  return new Response(html, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+  const response = new Response(html, {
+    status: 200,
+    headers: {
+      "content-type": "text/html; charset=utf-8",
+      "cache-control": `public, max-age=60, s-maxage=${CACHE_TTL}, stale-while-revalidate=86400`
+    }
+  });
+  context.waitUntil(cache.put(cacheKey, response.clone()));
+  return response;
 }

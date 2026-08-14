@@ -6,42 +6,27 @@ export async function onRequestGet(context) {
   const assetUrl = new URL(requestUrl);
   assetUrl.pathname = "/play.html";
   assetUrl.search = "";
-
   const assetResponse = await context.env.ASSETS.fetch(assetUrl);
-
   if (!assetResponse.ok) {
-    return new Response("Unable to load play.html", {
-      status: 502,
-      headers: { "content-type": "text/plain; charset=utf-8" }
-    });
+    return new Response("Unable to load play.html", { status: 502, headers: { "content-type": "text/plain; charset=utf-8" } });
   }
 
   let html = await assetResponse.text();
 
+  // Keep one responsive design system. play.html historically contained a large
+  // page-specific <style> block; remove it so /styles.css is the single source of truth.
+  html = html.replace(/<style>\s*\.game-page[\s\S]*?<\/style>/i, "");
+
   function escapeHtml(value = "") {
-    return String(value).replace(/[&<>"']/g, (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    }[char]));
+    return String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[char]));
   }
-
-  function cleanText(value = "") {
-    return String(value).replace(/\s+/g, " ").trim();
-  }
-
-  function slug(value = "") {
-    return String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  }
-
+  function cleanText(value = "") { return String(value).replace(/\s+/g, " ").trim(); }
+  function slug(value = "") { return String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
   function replaceElementText(source, id, value) {
     const safeValue = escapeHtml(value);
     const pattern = new RegExp(`(<[^>]+\\bid=["']${id}["'][^>]*>)[\\s\\S]*?(</[^>]+>)`, "i");
     return source.replace(pattern, `$1${safeValue}$2`);
   }
-
   function injectJsonLd(source, id, data) {
     const json = JSON.stringify(data).replace(/</g, "\\u003c");
     const script = `<script type="application/ld+json" id="${id}">${json}</script>`;
@@ -50,9 +35,7 @@ export async function onRequestGet(context) {
     return source.replace(/<\/head>/i, `${script}\n</head>`);
   }
 
-  let gameTitle = requestedTitle
-    ? requestedTitle.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase())
-    : "Game";
+  let gameTitle = requestedTitle ? requestedTitle.replace(/-/g, " ").replace(/\b\w/g, char => char.toUpperCase()) : "Game";
   let gameDescription = "";
   let gameCategory = "Browser Game";
   let gameImage = "";
@@ -62,11 +45,7 @@ export async function onRequestGet(context) {
     try {
       const apiUrl = new URL("/api/game", requestUrl.origin);
       apiUrl.searchParams.set("id", gameId);
-
-      const gameResponse = await fetch(apiUrl.toString(), {
-        headers: { Accept: "application/json" }
-      });
-
+      const gameResponse = await fetch(apiUrl.toString(), { headers: { Accept: "application/json" } });
       if (gameResponse.ok) {
         const gameData = await gameResponse.json();
         if (gameData.title) gameTitle = cleanText(gameData.title);
@@ -76,7 +55,7 @@ export async function onRequestGet(context) {
         if (gameData.title) gameLoaded = true;
       }
     } catch (error) {
-      // Use URL title as fallback.
+      console.error("Game metadata fetch failed:", error);
     }
   }
 
@@ -89,18 +68,11 @@ export async function onRequestGet(context) {
   if (gameId) {
     canonicalUrl.searchParams.set("id", gameId);
     if (requestedTitle) canonicalUrl.searchParams.set("title", requestedTitle);
-
-    html = html.replace(
-      /(<link\s+rel=["']canonical["'][^>]*\bid=["']canonical-url["'][^>]*\bhref=["'])[^"']*(["'])/i,
-      `$1${escapeHtml(canonicalUrl.toString())}$2`
-    );
+    html = html.replace(/(<link\s+rel=["']canonical["'][^>]*\bid=["']canonical-url["'][^>]*\bhref=["'])[^"']*(["'])/i, `$1${escapeHtml(canonicalUrl.toString())}$2`);
   }
 
   html = html.replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtml(seoTitle)}</title>`);
-  html = html.replace(
-    /(<meta\s+name=["']description["'][^>]*\bid=["']meta-description["'][^>]*content=["'])[^"']*(["'])/i,
-    `$1${escapeHtml(seoDescription)}$2`
-  );
+  html = html.replace(/(<meta\s+name=["']description["'][^>]*\bid=["']meta-description["'][^>]*content=["'])[^"']*(["'])/i, `$1${escapeHtml(seoDescription)}$2`);
 
   if (gameId && gameLoaded) {
     html = replaceElementText(html, "game-title", gameTitle);
@@ -109,8 +81,7 @@ export async function onRequestGet(context) {
     html = replaceElementText(html, "game-category", gameCategory);
     html = replaceElementText(html, "detail-category", gameCategory);
     html = replaceElementText(html, "breadcrumb-title", gameTitle);
-
-    html = html.replace(/<div\s+id=["']game-content["']\s+style=["']display:none;["']>/i, '<div id="game-content" style="display:block;">');
+    html = html.replace(/<div\s+id=["']game-content["']\s+style=["']display:none;["']>/i, '<div id="game-content">');
     html = html.replace(/<div\s+class=["']error-card["']\s+id=["']game-error["']>/i, '<div class="error-card" id="game-error" style="display:none;">');
 
     const videoGameSchema = {
@@ -124,7 +95,6 @@ export async function onRequestGet(context) {
       "isAccessibleForFree": true,
       "publisher": { "@type": "Organization", "name": "BrainrotGames", "url": `${requestUrl.origin}/` }
     };
-
     if (gameImage) videoGameSchema.image = gameImage;
 
     const breadcrumbSchema = {
@@ -136,47 +106,29 @@ export async function onRequestGet(context) {
         { "@type": "ListItem", "position": 3, "name": gameTitle, "item": canonicalUrl.toString() }
       ]
     };
-
     html = injectJsonLd(html, "game-schema-server", videoGameSchema);
     html = injectJsonLd(html, "breadcrumb-schema-server", breadcrumbSchema);
 
-    /* Server-render related game links so crawlers can discover more game pages from every game page. */
+    // Related links remain server-rendered for discovery and SEO.
     try {
       const relatedUrl = new URL("/api/games", requestUrl.origin);
       relatedUrl.searchParams.set("category", gameCategory);
       relatedUrl.searchParams.set("page", "1");
-
-      const relatedResponse = await fetch(relatedUrl.toString(), {
-        headers: { Accept: "application/json" }
-      });
-
+      const relatedResponse = await fetch(relatedUrl.toString(), { headers: { Accept: "application/json" } });
       if (relatedResponse.ok) {
         const relatedData = await relatedResponse.json();
         const relatedGames = Array.isArray(relatedData.items)
-          ? relatedData.items.filter((game) => String(game.id ?? game.namespace ?? "") !== String(gameId)).slice(0, 6)
+          ? relatedData.items.filter(game => String(game.id ?? game.namespace ?? "") !== String(gameId)).slice(0, 6)
           : [];
-
         if (relatedGames.length) {
-          const links = relatedGames.map((game) => {
+          const links = relatedGames.map(game => {
             const id = game.id ?? game.namespace ?? "";
             const title = game.title || "Untitled game";
             const href = `/play?id=${encodeURIComponent(id)}&title=${encodeURIComponent(slug(title))}`;
             return `<a href="${escapeHtml(href)}">${escapeHtml(title)}</a>`;
           }).join("");
-
-          const relatedMarkup = `
-            <section class="related-games">
-              <h2>More ${escapeHtml(gameCategory)} Games</h2>
-              <p>Keep playing with more games from the same category.</p>
-              <div class="sidebar-links">${links}</div>
-              <p><a href="/games/${escapeHtml(slug(gameCategory))}">Browse all ${escapeHtml(gameCategory)} games</a></p>
-            </section>
-          `;
-
-          html = html.replace(
-            /<section\s+class=["']related-games["'][^>]*>[\s\S]*?<\/section>/i,
-            relatedMarkup
-          );
+          const relatedMarkup = `<section class="related-games"><h2>More ${escapeHtml(gameCategory)} Games</h2><p>Keep playing with more games from the same category.</p><div class="sidebar-links">${links}</div><p><a href="/games/${escapeHtml(slug(gameCategory))}">Browse all ${escapeHtml(gameCategory)} games</a></p></section>`;
+          html = html.replace(/<section\s+class=["']related-games["'][^>]*>[\s\S]*?<\/section>/i, relatedMarkup);
         }
       }
     } catch (error) {
@@ -188,7 +140,7 @@ export async function onRequestGet(context) {
     status: 200,
     headers: {
       "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=300"
+      "cache-control": "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
     }
   });
 }

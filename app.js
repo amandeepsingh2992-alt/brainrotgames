@@ -17,7 +17,6 @@ const titleEl = $("games-title");
 const loadMore = $("load-more");
 const clearFilter = $("clear-filter");
 
-
 /* =========================
    HELPERS
 ========================= */
@@ -25,16 +24,16 @@ const clearFilter = $("clear-filter");
 function esc(value = "") {
   return String(value).replace(
     /[&<>"']/g,
-    (char) => ({
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    })[char]
+    (c) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[c]
   );
 }
-
 
 function slug(value = "") {
   return value
@@ -42,20 +41,19 @@ function slug(value = "") {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(/^-|-$/g, "");
 }
-
 
 /* =========================
    NORMALIZE GAME DATA
 ========================= */
 
-function normalizeGame(g) {
+function normalizeGame(g = {}) {
   return {
     id:
       g.id ??
       g.namespace ??
-      "",
+      Math.random().toString(36).slice(2),
 
     title:
       g.title ??
@@ -86,7 +84,6 @@ function normalizeGame(g) {
   };
 }
 
-
 /* =========================
    FETCH GAMEPIX FEED
 ========================= */
@@ -94,7 +91,7 @@ function normalizeGame(g) {
 async function fetchGames(page = 1, category = "All") {
   const params = new URLSearchParams({
     page: String(page),
-    category
+    category: category
   });
 
   const res = await fetch(
@@ -115,13 +112,11 @@ async function fetchGames(page = 1, category = "All") {
   return res.json();
 }
 
-
 /* =========================
    CATEGORY NAVIGATION
 ========================= */
 
 let cachedCategories = [];
-
 
 function renderCategories(games) {
   const categories = [
@@ -135,15 +130,14 @@ function renderCategories(games) {
 
   categoryRow.innerHTML = categories
     .map((category) => {
-
       const active =
         category === state.category;
 
       return `
         <button
-          type="button"
           class="category ${active ? "active" : ""}"
           data-category="${esc(category)}"
+          type="button"
         >
           ${esc(
             category === "All"
@@ -155,16 +149,14 @@ function renderCategories(games) {
     })
     .join("");
 
-
   categoryRow
     .querySelectorAll(".category")
     .forEach((btn) => {
-
       btn.addEventListener("click", () => {
-
         const selectedCategory =
           btn.dataset.category;
 
+        /* Reset feed */
         state.category =
           selectedCategory;
 
@@ -187,7 +179,7 @@ function renderCategories(games) {
 
         /*
          * Keep category buttons visible
-         * while the new feed loads.
+         * while the new category loads.
          */
         renderCategories(
           cachedCategories.length
@@ -197,10 +189,8 @@ function renderCategories(games) {
 
         load();
       });
-
     });
 }
-
 
 /* =========================
    FILTERING
@@ -213,7 +203,6 @@ function filteredGames() {
       .toLowerCase();
 
   return state.games.filter((game) => {
-
     const categoryMatches =
       state.category === "All" ||
       game.category === state.category;
@@ -231,7 +220,6 @@ function filteredGames() {
   });
 }
 
-
 /* =========================
    RENDER GAME CARDS
 ========================= */
@@ -241,7 +229,6 @@ function render() {
     filteredGames();
 
   if (!games.length) {
-
     grid.innerHTML = `
       <div class="empty">
         <strong>
@@ -257,21 +244,17 @@ function render() {
     return;
   }
 
-
   grid.innerHTML = games
     .map((game) => {
-
       /*
-       * IMPORTANT:
-       * Game pages use /play.html
+       * Game pages use the clean /play route.
        */
       const gameUrl =
-        `/play.html?id=${encodeURIComponent(
+        `/play?id=${encodeURIComponent(
           game.id
         )}&title=${encodeURIComponent(
           slug(game.title)
         )}`;
-
 
       return `
         <article class="game-card">
@@ -303,13 +286,11 @@ function render() {
 
             </div>
 
-
             <div class="card-body">
 
               <div class="game-title">
                 ${esc(game.title)}
               </div>
-
 
               <div class="game-meta">
 
@@ -322,7 +303,6 @@ function render() {
                 </span>
 
               </div>
-
 
               <div class="play-btn">
                 Play Now
@@ -338,13 +318,11 @@ function render() {
     .join("");
 }
 
-
 /* =========================
    LOAD GAMES
 ========================= */
 
 async function load() {
-
   if (
     state.loading ||
     !state.hasMore
@@ -359,21 +337,19 @@ async function load() {
       ? "Loading games…"
       : "Loading more…";
 
-
   try {
-
     const data =
       await fetchGames(
         state.page,
         state.category
       );
 
-
     const incoming =
       Array.isArray(data.items)
-        ? data.items.map(normalizeGame)
+        ? data.items.map(
+            normalizeGame
+          )
         : [];
-
 
     /*
      * Prevent duplicate games.
@@ -381,41 +357,27 @@ async function load() {
     const seen =
       new Set(
         state.games.map(
-          (game) => String(game.id)
+          (game) =>
+            String(game.id)
         )
       );
 
-
     for (const game of incoming) {
-
-      /*
-       * Ignore malformed records
-       * without an identifier.
-       */
-      if (!game.id) {
-        continue;
-      }
-
-      const key =
+      const id =
         String(game.id);
 
-
-      if (!seen.has(key)) {
-
+      if (!seen.has(id)) {
         state.games.push(game);
-
-        seen.add(key);
+        seen.add(id);
       }
     }
 
-
     /*
-     * Keep a copy of games available
-     * for category navigation.
+     * Keep a copy of the loaded
+     * catalogue for category navigation.
      */
     cachedCategories =
       state.games.slice();
-
 
     /*
      * Determine whether another page exists.
@@ -427,31 +389,28 @@ async function load() {
         incoming.length >= 12
       );
 
-
     /*
-     * Render categories on initial
-     * catalogue load.
+     * Render categories on the
+     * initial catalogue load.
      */
     if (state.page === 1) {
-
       renderCategories(
         state.games
       );
     }
 
-
     render();
 
-
+    /*
+     * Status message.
+     */
     statusEl.textContent =
       state.games.length === 1
         ? "1 game available"
         : `${state.games.length} games loaded`;
 
-
     /*
-     * Hide Load More when there
-     * are no additional games.
+     * Show/hide Load More button.
      */
     loadMore.style.display =
       state.hasMore
@@ -459,15 +418,15 @@ async function load() {
         : "none";
 
   } catch (err) {
-
-    console.error(err);
+    console.error(
+      "Game feed error:",
+      err
+    );
 
     statusEl.textContent =
       "Game feed unavailable";
 
-
     if (!state.games.length) {
-
       grid.innerHTML = `
         <div class="empty">
 
@@ -484,86 +443,78 @@ async function load() {
     }
 
   } finally {
-
     state.loading = false;
   }
 }
-
 
 /* =========================
    SEARCH
 ========================= */
 
-searchEl.addEventListener(
-  "input",
-  (event) => {
+if (searchEl) {
+  searchEl.addEventListener(
+    "input",
+    (event) => {
+      state.search =
+        event.target.value;
 
-    state.search =
-      event.target.value;
-
-    render();
-  }
-);
-
+      render();
+    }
+  );
+}
 
 /* =========================
    CLEAR CATEGORY FILTER
 ========================= */
 
-clearFilter.addEventListener(
-  "click",
-  () => {
+if (clearFilter) {
+  clearFilter.addEventListener(
+    "click",
+    () => {
+      state.category = "All";
 
-    state.category = "All";
+      state.page = 1;
 
-    state.page = 1;
+      state.games = [];
 
-    state.games = [];
+      state.hasMore = true;
 
-    state.hasMore = true;
+      clearFilter.hidden = true;
 
-    clearFilter.hidden = true;
+      titleEl.textContent =
+        "Popular Browser Games";
 
-    titleEl.textContent =
-      "Popular Browser Games";
+      grid.innerHTML = "";
 
-    grid.innerHTML = "";
+      statusEl.textContent =
+        "Loading games…";
 
-    statusEl.textContent =
-      "Loading games…";
-
-
-    renderCategories(
-      cachedCategories
-    );
-
-
-    load();
-  }
-);
-
+      load();
+    }
+  );
+}
 
 /* =========================
    LOAD MORE
 ========================= */
 
-loadMore.addEventListener(
-  "click",
-  () => {
+if (loadMore) {
+  loadMore.addEventListener(
+    "click",
+    () => {
+      if (
+        state.loading ||
+        !state.hasMore
+      ) {
+        return;
+      }
 
-    if (
-      state.loading ||
-      !state.hasMore
-    ) {
-      return;
+      state.page += 1;
+
+      load();
     }
-
-    state.page += 1;
-
-    load();
-  }
-);
-
+  );
+}
 
 /* =========================
    INITIAL LOAD

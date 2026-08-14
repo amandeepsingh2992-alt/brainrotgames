@@ -1151,10 +1151,15 @@
       "meta-description"
     );
 
-  const canonical =
-    document.getElementById(
-      "canonical-url"
-    );
+ const canonical =
+  document.getElementById("canonical-url");
+
+if (canonical) {
+  canonical.href =
+    window.location.origin +
+    window.location.pathname +
+    window.location.search;
+}
 
 
 

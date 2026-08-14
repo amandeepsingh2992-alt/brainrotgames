@@ -25,13 +25,13 @@ const clearFilter = $("clear-filter");
 function esc(value = "") {
   return String(value).replace(
     /[&<>"']/g,
-    c => ({
+    (char) => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#039;"
-    }[c])
+    })[char]
   );
 }
 
@@ -42,7 +42,7 @@ function slug(value = "") {
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+    .replace(/^-+|-+$/g, "");
 }
 
 
@@ -50,39 +50,39 @@ function slug(value = "") {
    NORMALIZE GAME DATA
 ========================= */
 
-function normalizeGame(g) {
+function normalizeGame(game) {
   return {
     id:
-      g.id ??
-      g.namespace ??
-      Math.random().toString(36).slice(2),
+      game.id ??
+      game.namespace ??
+      "",
 
     title:
-      g.title ??
+      game.title ??
       "Untitled game",
 
     description:
-      g.description ??
+      game.description ??
       "",
 
     category:
-      g.category ??
+      game.category ??
       "Other",
 
     image:
-      g.banner_image ||
-      g.image ||
-      g.thumbnailUrl ||
-      g.thumbnailUrl100 ||
+      game.banner_image ||
+      game.image ||
+      game.thumbnailUrl ||
+      game.thumbnailUrl100 ||
       "",
 
     url:
-      g.url ||
-      g.game_url ||
+      game.url ||
+      game.game_url ||
       "",
 
-    width: g.width,
-    height: g.height
+    width: game.width,
+    height: game.height
   };
 }
 
@@ -98,7 +98,7 @@ async function fetchGames(page = 1, category = "All") {
     category
   });
 
-  const res = await fetch(
+  const response = await fetch(
     `/api/games?${params.toString()}`,
     {
       headers: {
@@ -107,13 +107,13 @@ async function fetchGames(page = 1, category = "All") {
     }
   );
 
-  if (!res.ok) {
+  if (!response.ok) {
     throw new Error(
-      `Feed request failed (${res.status})`
+      `Feed request failed (${response.status})`
     );
   }
 
-  return res.json();
+  return response.json();
 }
 
 
@@ -130,24 +130,28 @@ function renderCategories(games) {
     "All",
     ...new Set(
       games
-        .map(g => g.category)
+        .map((game) => game.category)
         .filter(Boolean)
     )
   ].slice(0, 18);
 
-
   categoryRow.innerHTML = categories
-    .map(category => {
+    .map((category) => {
 
       const active =
         category === state.category;
 
       return `
         <button
+          type="button"
           class="category ${active ? "active" : ""}"
           data-category="${esc(category)}"
         >
-          ${esc(category === "All" ? "All Games" : category)}
+          ${esc(
+            category === "All"
+              ? "All Games"
+              : category
+          )}
         </button>
       `;
     })
@@ -156,14 +160,13 @@ function renderCategories(games) {
 
   categoryRow
     .querySelectorAll(".category")
-    .forEach(btn => {
+    .forEach((button) => {
 
-      btn.addEventListener("click", () => {
+      button.addEventListener("click", () => {
 
         const selectedCategory =
-          btn.dataset.category;
+          button.dataset.category;
 
-        /* Reset feed completely */
         state.category =
           selectedCategory;
 
@@ -171,34 +174,24 @@ function renderCategories(games) {
         state.games = [];
         state.hasMore = true;
 
-
         clearFilter.hidden =
           state.category === "All";
-
 
         titleEl.textContent =
           state.category === "All"
             ? "Popular Browser Games"
             : `${state.category} Games`;
 
-
         grid.innerHTML = "";
-
 
         statusEl.textContent =
           "Loading games…";
 
-
-        /*
-         * Keep category buttons visible
-         * while the new feed loads.
-         */
         renderCategories(
           cachedCategories.length
             ? cachedCategories
             : games
         );
-
 
         load();
       });
@@ -213,31 +206,27 @@ function renderCategories(games) {
 
 function filteredGames() {
 
-  const q =
+  const query =
     state.search
       .trim()
       .toLowerCase();
 
-
-  return state.games.filter(game => {
+  return state.games.filter((game) => {
 
     const categoryMatches =
       state.category === "All" ||
       game.category === state.category;
 
-
     const searchMatches =
-      !q ||
+      !query ||
       `${game.title} ${game.description} ${game.category}`
         .toLowerCase()
-        .includes(q);
-
+        .includes(query);
 
     return (
       categoryMatches &&
       searchMatches
     );
-
   });
 }
 
@@ -251,20 +240,13 @@ function render() {
   const games =
     filteredGames();
 
-
   if (!games.length) {
 
     grid.innerHTML = `
       <div class="empty">
-
-        <strong>
-          No games found.
-        </strong>
-
+        <strong>No games found.</strong>
         <br><br>
-
         Try another search or category.
-
       </div>
     `;
 
@@ -273,10 +255,18 @@ function render() {
 
 
   grid.innerHTML = games
-    .map(game => {
+    .map((game) => {
 
+      /*
+       * IMPORTANT:
+       * Use the actual game-page URL.
+       */
       const gameUrl =
-        `/play?id=${encodeURIComponent(game.id)}&title=${encodeURIComponent(slug(game.title))}`;
+        `/play.html?id=${encodeURIComponent(
+          game.id
+        )}&title=${encodeURIComponent(
+          slug(game.title)
+        )}`;
 
 
       return `
@@ -359,9 +349,7 @@ async function load() {
     return;
   }
 
-
   state.loading = true;
-
 
   statusEl.textContent =
     state.page === 1
@@ -385,25 +373,36 @@ async function load() {
 
 
     /*
-     * Prevent duplicate games
+     * Prevent duplicate games.
      */
     const seen =
       new Set(
         state.games.map(
-          game => String(game.id)
+          (game) => String(game.id)
         )
       );
 
 
     for (const game of incoming) {
 
-      if (
-        !seen.has(
-          String(game.id)
-        )
-      ) {
+      /*
+       * Ignore malformed records without
+       * a usable GamePix identifier.
+       */
+      if (!game.id) {
+        continue;
+      }
+
+
+      const key =
+        String(game.id);
+
+
+      if (!seen.has(key)) {
 
         state.games.push(game);
+
+        seen.add(key);
 
       }
 
@@ -411,8 +410,7 @@ async function load() {
 
 
     /*
-     * Keep a copy of games available
-     * for category navigation.
+     * Keep a copy for category navigation.
      */
     cachedCategories =
       state.games.slice();
@@ -430,8 +428,7 @@ async function load() {
 
 
     /*
-     * Render categories on initial
-     * catalogue load.
+     * Render categories on initial load.
      */
     if (state.page === 1) {
 
@@ -452,19 +449,17 @@ async function load() {
 
 
     /*
-     * Hide Load More if there
-     * isn't another page.
+     * Hide Load More when there
+     * are no additional games.
      */
     loadMore.style.display =
       state.hasMore
         ? ""
         : "none";
 
+  } catch (error) {
 
-  } catch (err) {
-
-    console.error(err);
-
+    console.error(error);
 
     statusEl.textContent =
       "Game feed unavailable";
@@ -502,7 +497,7 @@ async function load() {
 
 searchEl.addEventListener(
   "input",
-  event => {
+  (event) => {
 
     state.search =
       event.target.value;
@@ -538,6 +533,10 @@ clearFilter.addEventListener(
 
     statusEl.textContent =
       "Loading games…";
+
+    renderCategories(
+      cachedCategories
+    );
 
     load();
 

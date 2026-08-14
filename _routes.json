@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "include": [
+    "/api/*",
+    "/play",
+    "/games",
+    "/games/*",
+    "/sitemap.xml"
+  ],
+  "exclude": []
+}

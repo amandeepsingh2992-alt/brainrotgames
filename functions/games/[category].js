@@ -137,6 +137,14 @@ function gameCard(game) {
   return `<article class="game-card"><a href="${escapeHtml(gameUrl(game))}" aria-label="Play ${escapeHtml(title)}"><div class="thumb"><div class="fallback">🎮</div>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" decoding="async"${dimensions} referrerpolicy="no-referrer">` : ""}</div><div class="card-body"><div class="game-title">${escapeHtml(title)}</div><div class="game-meta"><span>${escapeHtml(category)}</span><span>▶ Play</span></div><div class="play-btn">Play Now</div></div></a></article>`;
 }
 
+function injectJsonLd(source, id, data) {
+  const json = JSON.stringify(data).replace(/</g, "\\u003c");
+  const script = `<script type="application/ld+json" id="${id}">${json}</script>`;
+  const existing = new RegExp(`<script[^>]+id=["']${id}["'][^>]*>[\\s\\S]*?<\\/script>`, "i");
+  if (existing.test(source)) return source.replace(existing, script);
+  return source.replace(/<\/head>/i, `${script}\n</head>`);
+}
+
 export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
   const categorySlug = slug(context.params.category || "");
@@ -161,7 +169,18 @@ export async function onRequestGet(context) {
 <main class="container section"><div class="breadcrumbs" style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:24px"><a href="/">Home</a><span>/</span><a href="/games">Categories</a><span>/</span><span>${escapeHtml(category)}</span></div><div class="section-head"><div><p class="eyebrow">BROWSER GAMES</p><h1>${escapeHtml(category)} Games</h1></div></div><p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p><div class="game-grid">${gameMarkup}</div><section class="content-panel" style="margin-top:40px"><p class="eyebrow">ABOUT THIS CATEGORY</p><h2>Free ${escapeHtml(category)} Browser Games</h2><p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p><p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p></section></main>
 <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav></div></footer></body></html>`;
 
-  const response = new Response(html, {
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": `${SITE_URL}/` },
+      { "@type": "ListItem", "position": 2, "name": "Categories", "item": `${SITE_URL}/games` },
+      { "@type": "ListItem", "position": 3, "name": `${category} Games`, "item": canonical }
+    ]
+  };
+
+  const renderedHtml = injectJsonLd(html, "breadcrumb-schema-server", breadcrumbSchema);
+  const response = new Response(renderedHtml, {
     status: 200,
     headers: {
       "content-type": "text/html; charset=utf-8",

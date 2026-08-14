@@ -1,5 +1,6 @@
 const SITE_URL = "https://brainrotgames.me";
-const API_URL = "/api/games";
+const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
+const MAX_FEED_PAGES = 10;
 
 const CATEGORY_COPY = {
   action: "Fast-paced browser games with combat, reflexes and quick challenges.",
@@ -34,6 +35,19 @@ function slug(value = "") {
     .replace(/^-|-$/g, "");
 }
 
+function categoryMatches(gameCategory = "", requestedSlug = "") {
+  const gameSlug = slug(gameCategory);
+
+  if (!gameSlug || !requestedSlug) return false;
+
+  return (
+    gameSlug === requestedSlug ||
+    gameSlug.startsWith(`${requestedSlug}-`) ||
+    gameSlug.endsWith(`-${requestedSlug}`) ||
+    gameSlug.includes(`-${requestedSlug}-`)
+  );
+}
+
 function gameUrl(game) {
   const url = new URL("/play", SITE_URL);
   url.searchParams.set("id", String(game.id ?? game.namespace ?? ""));
@@ -66,10 +80,57 @@ function gameCard(game) {
   `;
 }
 
+async function fetchCategoryGames(requestedSlug) {
+  const pageNumbers = Array.from(
+    { length: MAX_FEED_PAGES },
+    (_, index) => index + 1
+  );
+
+  const responses = await Promise.all(
+    pageNumbers.map(async (page) => {
+      try {
+        const response = await fetch(`${FEED}${page}`, {
+          headers: { Accept: "application/json" }
+        });
+
+        if (!response.ok) return [];
+
+        const data = await response.json();
+        return Array.isArray(data.items) ? data.items : [];
+      } catch (error) {
+        console.error(`GamePix category fetch failed for page ${page}:`, error);
+        return [];
+      }
+    })
+  );
+
+  const seen = new Set();
+  const matches = [];
+
+  for (const pageItems of responses) {
+    for (const game of pageItems) {
+      const id = String(game.id ?? game.namespace ?? "");
+
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+
+      if (categoryMatches(game.category, requestedSlug)) {
+        matches.push(game);
+      }
+
+      if (matches.length >= 24) return matches;
+    }
+  }
+
+  return matches;
+}
+
 export async function onRequestGet(context) {
   const rawCategory = String(context.params.category || "").trim();
-  const category = rawCategory.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
-  const categorySlug = slug(category);
+  const categorySlug = slug(rawCategory);
+  const category = categorySlug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 
   if (!categorySlug) {
     return Response.redirect(`${SITE_URL}/games`, 301);
@@ -79,14 +140,7 @@ export async function onRequestGet(context) {
   let games = [];
 
   try {
-    const response = await fetch(`${new URL(API_URL, context.request.url).toString()}?category=${encodeURIComponent(category)}`, {
-      headers: { Accept: "application/json" }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      games = Array.isArray(data.items) ? data.items.slice(0, 24) : [];
-    }
+    games = await fetchCategoryGames(categorySlug);
   } catch (error) {
     console.error("Category page feed error:", error);
   }

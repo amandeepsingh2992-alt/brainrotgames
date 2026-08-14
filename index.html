@@ -2,170 +2,36 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1"
-  >
-
-  <meta
-    name="description"
-    content="BrainrotGames is a free online gaming site where you can discover and play browser games across action, arcade, puzzle, racing, casual and other categories."
-  >
-
-  <meta
-    name="robots"
-    content="index,follow"
-  >
-
-  <meta
-    name="theme-color"
-    content="#070b14"
-  >
-
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="BrainrotGames is a free online gaming site where you can discover and play browser games across action, arcade, puzzle, racing, casual and other categories.">
+  <meta name="robots" content="index,follow">
+  <meta name="theme-color" content="#070b14">
   <title>BrainrotGames — Free Online Browser Games</title>
-
   <link rel="stylesheet" href="/styles.css">
 </head>
-
 <body>
-
   <header class="site-header">
     <div class="container nav">
-      <a class="brand" href="/" aria-label="BrainrotGames home">
-        <span class="brand-mark">BG</span>
-        <span>Brainrot<span>Games</span></span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href="#games">Games</a>
-        <a href="#categories">Categories</a>
-        <a href="#about">About</a>
-      </nav>
-      <div class="search-wrap">
-        <label class="sr-only" for="search">Search games</label>
-        <input id="search" type="search" placeholder="Search games..." autocomplete="off">
-      </div>
+      <a class="brand" href="/" aria-label="BrainrotGames home"><span class="brand-mark">BG</span><span>Brainrot<span>Games</span></span></a>
+      <nav aria-label="Main navigation"><a href="#games">Games</a><a href="#categories">Categories</a><a href="#about">About</a></nav>
+      <div class="search-wrap"><label class="sr-only" for="search">Search games</label><input id="search" type="search" placeholder="Search games..." autocomplete="off"></div>
     </div>
   </header>
-
   <main>
-
-    <section class="hero">
-      <div class="container hero-inner">
-        <div class="hero-copy-wrap">
-          <p class="eyebrow">FREE BROWSER GAMES</p>
-          <h1>Play free games.<br><span>Discover something new.</span></h1>
-          <p class="hero-copy">Explore a growing collection of free browser games across action, arcade, puzzle, racing, casual and more. Play instantly without downloading or installing anything.</p>
-          <div class="hero-actions">
-            <a class="cta" href="#games">Explore Games</a>
-            <a class="ghost-btn hero-secondary" href="#categories">Browse Categories</a>
-          </div>
-        </div>
-        <div class="hero-card" aria-hidden="true">
-          <div class="hero-orb orb-a"></div>
-          <div class="hero-orb orb-b"></div>
-          <div class="hero-game">🎮</div>
-          <div class="hero-caption">PLAY ONLINE • NO DOWNLOAD</div>
-        </div>
-      </div>
+    <section class="hero"><div class="container hero-inner"><div class="hero-copy-wrap"><p class="eyebrow">FREE BROWSER GAMES</p><h1>Play free games.<br><span>Discover something new.</span></h1><p class="hero-copy">Explore a growing collection of free browser games across action, arcade, puzzle, racing, casual and more. Play instantly without downloading or installing anything.</p><div class="hero-actions"><a class="cta" href="#games">Explore Games</a><a class="ghost-btn hero-secondary" href="#categories">Browse Categories</a></div></div><div class="hero-card" aria-hidden="true"><div class="hero-orb orb-a"></div><div class="hero-orb orb-b"></div><div class="hero-game">🎮</div><div class="hero-caption">PLAY ONLINE • NO DOWNLOAD</div></div></div></section>
+    <section class="container section discovery-section"><div class="section-head"><div><p class="eyebrow">DISCOVER</p><h2>Find Your Next Game</h2></div></div><div class="discovery-grid"><a class="discovery-card" href="#games"><span class="discovery-icon">🎮</span><div><strong>All Games</strong><span>Explore the complete library</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="/games"><span class="discovery-icon">🧩</span><div><strong>Popular Categories</strong><span>Find games by genre</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="#games"><span class="discovery-icon">⭐</span><div><strong>Latest Games</strong><span>Discover new browser games</span></div><span class="discovery-arrow">→</span></a></div></section>
+    <section class="container section" id="categories"><div class="section-head"><div><p class="eyebrow">BROWSE</p><h2>Game Categories</h2></div><button class="ghost-btn" id="clear-filter" hidden>Clear filter</button></div><p class="section-intro">Explore all available GamePix categories. Choose a genre to open its dedicated game page.</p>
+      <div class="category-directory-home" aria-label="All game categories"><div class="category-row category-row-all" id="category-row">
+        <a class="category active" href="#games">All Games</a>
+        <a class="category" href="/games/2048">2048</a><a class="category" href="/games/action">Action</a><a class="category" href="/games/addictive">Addictive</a><a class="category" href="/games/adventure">Adventure</a><a class="category" href="/games/airplane">Airplane</a><a class="category" href="/games/animal">Animal</a><a class="category" href="/games/anime">Anime</a><a class="category" href="/games/arcade">Arcade</a><a class="category" href="/games/archery">Archery</a><a class="category" href="/games/ball">Ball</a><a class="category" href="/games/baseball">Baseball</a><a class="category" href="/games/basketball">Basketball</a><a class="category" href="/games/battle">Battle</a><a class="category" href="/games/battle-royale">Battle Royale</a><a class="category" href="/games/bejeweled">Bejeweled</a><a class="category" href="/games/bike">Bike</a><a class="category" href="/games/block">Block</a><a class="category" href="/games/board">Board</a><a class="category" href="/games/bowling">Bowling</a><a class="category" href="/games/boxing">Boxing</a><a class="category" href="/games/brain">Brain</a><a class="category" href="/games/bubble-shooter">Bubble Shooter</a><a class="category" href="/games/building">Building</a><a class="category" href="/games/car">Car</a><a class="category" href="/games/card">Card</a><a class="category" href="/games/casual">Casual</a><a class="category" href="/games/cats">Cats</a><a class="category" href="/games/checkers">Checkers</a><a class="category" href="/games/chess">Chess</a><a class="category" href="/games/christmas">Christmas</a><a class="category" href="/games/city-building">City Building</a><a class="category" href="/games/classics">Classics</a><a class="category" href="/games/clicker">Clicker</a><a class="category" href="/games/coco">Coco</a><a class="category" href="/games/coding">Coding</a><a class="category" href="/games/coloring">Coloring</a><a class="category" href="/games/cooking">Cooking</a><a class="category" href="/games/cool">Cool</a><a class="category" href="/games/crazy">Crazy</a><a class="category" href="/games/cricket">Cricket</a><a class="category" href="/games/dinosaur">Dinosaur</a><a class="category" href="/games/dirt-bike">Dirt Bike</a><a class="category" href="/games/dragons">Dragons</a><a class="category" href="/games/drawing">Drawing</a><a class="category" href="/games/dress-up">Dress Up</a><a class="category" href="/games/drifting">Drifting</a><a class="category" href="/games/driving">Driving</a><a class="category" href="/games/educational">Educational</a><a class="category" href="/games/escape">Escape</a><a class="category" href="/games/family">Family</a><a class="category" href="/games/farming">Farming</a><a class="category" href="/games/fashion">Fashion</a><a class="category" href="/games/fighting">Fighting</a><a class="category" href="/games/fire-and-water">Fire And Water</a><a class="category" href="/games/first-person-shooter">First Person Shooter</a><a class="category" href="/games/fishing">Fishing</a><a class="category" href="/games/flash">Flash</a><a class="category" href="/games/flight">Flight</a><a class="category" href="/games/fun">Fun</a><a class="category" href="/games/games-for-girls">Games For Girls</a><a class="category" href="/games/gangster">Gangster</a><a class="category" href="/games/gdevelop">Gdevelop</a><a class="category" href="/games/golf">Golf</a><a class="category" href="/games/granny">Granny</a><a class="category" href="/games/gun">Gun</a><a class="category" href="/games/hair-salon">Hair Salon</a><a class="category" href="/games/halloween">Halloween</a><a class="category" href="/games/helicopter">Helicopter</a><a class="category" href="/games/hidden-object">Hidden Object</a><a class="category" href="/games/hockey">Hockey</a><a class="category" href="/games/horror">Horror</a><a class="category" href="/games/horse">Horse</a><a class="category" href="/games/hunting">Hunting</a><a class="category" href="/games/hyper-casual">Hyper Casual</a><a class="category" href="/games/idle">Idle</a><a class="category" href="/games/io">Io</a><a class="category" href="/games/jewel">Jewel</a><a class="category" href="/games/jigsaw-puzzles">Jigsaw Puzzles</a><a class="category" href="/games/jumping">Jumping</a><a class="category" href="/games/knight">Knight</a><a class="category" href="/games/mahjong">Mahjong</a><a class="category" href="/games/makeup">Makeup</a><a class="category" href="/games/management">Management</a><a class="category" href="/games/mario">Mario</a><a class="category" href="/games/match-3">Match 3</a><a class="category" href="/games/math">Math</a><a class="category" href="/games/memory">Memory</a><a class="category" href="/games/minecraft">Minecraft</a><a class="category" href="/games/mining">Mining</a><a class="category" href="/games/mmorpg">Mmorpg</a><a class="category" href="/games/mobile">Mobile</a><a class="category" href="/games/money">Money</a><a class="category" href="/games/monster">Monster</a><a class="category" href="/games/multiplayer">Multiplayer</a><a class="category" href="/games/music">Music</a><a class="category" href="/games/naval">Naval</a><a class="category" href="/games/ninja">Ninja</a><a class="category" href="/games/ninja-turtle">Ninja Turtle</a><a class="category" href="/games/offroad">Offroad</a><a class="category" href="/games/open-world">Open World</a><a class="category" href="/games/parking">Parking</a><a class="category" href="/games/parkour">Parkour</a><a class="category" href="/games/piano">Piano</a><a class="category" href="/games/pirates">Pirates</a><a class="category" href="/games/pixel">Pixel</a><a class="category" href="/games/platformer">Platformer</a><a class="category" href="/games/police">Police</a><a class="category" href="/games/pool">Pool</a><a class="category" href="/games/puzzle">Puzzle</a><a class="category" href="/games/racing">Racing</a><a class="category" href="/games/restaurant">Restaurant</a><a class="category" href="/games/retro">Retro</a><a class="category" href="/games/robots">Robots</a><a class="category" href="/games/rpg">Rpg</a><a class="category" href="/games/runner">Runner</a><a class="category" href="/games/scary">Scary</a><a class="category" href="/games/scrabble">Scrabble</a><a class="category" href="/games/sharks">Sharks</a><a class="category" href="/games/shooter">Shooter</a><a class="category" href="/games/simulation">Simulation</a><a class="category" href="/games/skateboard">Skateboard</a><a class="category" href="/games/skibidi-toilet">Skibidi Toilet</a><a class="category" href="/games/skill">Skill</a><a class="category" href="/games/snake">Snake</a><a class="category" href="/games/sniper">Sniper</a><a class="category" href="/games/soccer">Soccer</a><a class="category" href="/games/solitaire">Solitaire</a><a class="category" href="/games/spinner">Spinner</a><a class="category" href="/games/sports">Sports</a><a class="category" href="/games/stickman">Stickman</a><a class="category" href="/games/strategy">Strategy</a><a class="category" href="/games/surgery">Surgery</a><a class="category" href="/games/survival">Survival</a><a class="category" href="/games/sword">Sword</a><a class="category" href="/games/tanks">Tanks</a><a class="category" href="/games/tap">Tap</a><a class="category" href="/games/tetris">Tetris</a><a class="category" href="/games/trivia">Trivia</a><a class="category" href="/games/truck">Truck</a><a class="category" href="/games/two-player">Two Player</a><a class="category" href="/games/tycoon">Tycoon</a><a class="category" href="/games/war">War</a><a class="category" href="/games/word">Word</a><a class="category" href="/games/world-cup">World Cup</a><a class="category" href="/games/worm">Worm</a><a class="category" href="/games/wrestling">Wrestling</a><a class="category" href="/games/zombie">Zombie</a>
+      </div></div>
     </section>
-
-    <section class="container section discovery-section">
-      <div class="section-head"><div><p class="eyebrow">DISCOVER</p><h2>Find Your Next Game</h2></div></div>
-      <div class="discovery-grid">
-        <a class="discovery-card" href="#games"><span class="discovery-icon">🎮</span><div><strong>All Games</strong><span>Explore the complete library</span></div><span class="discovery-arrow">→</span></a>
-        <a class="discovery-card" href="/games"><span class="discovery-icon">🧩</span><div><strong>Popular Categories</strong><span>Find games by genre</span></div><span class="discovery-arrow">→</span></a>
-        <a class="discovery-card" href="#games"><span class="discovery-icon">⭐</span><div><strong>Latest Games</strong><span>Discover new browser games</span></div><span class="discovery-arrow">→</span></a>
-      </div>
-    </section>
-
-    <section class="container section" id="categories">
-      <div class="section-head">
-        <div><p class="eyebrow">BROWSE</p><h2>Game Categories</h2></div>
-        <button class="ghost-btn" id="clear-filter" hidden>Clear filter</button>
-      </div>
-      <p class="section-intro">Explore games by category and find something that matches your mood or play style.</p>
-
-      <!-- These are real HTML links so crawlers can discover category pages without executing JavaScript. -->
-      <div class="category-row" id="category-row">
-        <a class="category active" href="/#games">All Games</a>
-        <a class="category" href="/games/action">Action</a>
-        <a class="category" href="/games/arcade">Arcade</a>
-        <a class="category" href="/games/puzzle">Puzzle</a>
-        <a class="category" href="/games/racing">Racing</a>
-        <a class="category" href="/games/casual">Casual</a>
-        <a class="category" href="/games/sports">Sports</a>
-        <a class="category" href="/games/adventure">Adventure</a>
-        <a class="category" href="/games/strategy">Strategy</a>
-        <a class="category" href="/games/simulation">Simulation</a>
-        <a class="category" href="/games/board">Board</a>
-        <a class="category" href="/games/card">Card</a>
-        <a class="category" href="/games/word">Word</a>
-      </div>
-    </section>
-
-    <section class="container section" id="games">
-      <div class="section-head">
-        <div><p class="eyebrow">GAME LIBRARY</p><h2 id="games-title">Popular Browser Games</h2></div>
-        <span class="status" id="status">Loading…</span>
-      </div>
-      <p class="section-intro">Play free browser games directly online. Choose a game below to learn more and start playing.</p>
-      <div class="game-grid" id="game-grid"></div>
-      <div class="load-more-wrap"><button class="cta secondary" id="load-more">Load More Games</button></div>
-    </section>
-
-    <section class="container section" id="about">
-      <div class="content-panel">
-        <p class="eyebrow">ABOUT BRAINROTGAMES</p>
-        <h2>A Simple Place to Play Browser Games</h2>
-        <p>BrainrotGames is an online gaming website focused on making browser games easy to discover and play.</p>
-        <p>Our library includes games across different genres, including action, arcade, puzzle, racing, casual, farming and other browser-friendly categories.</p>
-        <p>Games are provided through third-party game publishers, distributors and technology providers. Game availability and content may change over time.</p>
-        <div class="about-features">
-          <div class="about-feature"><strong>Free to Play</strong><span>Play supported games directly in your browser.</span></div>
-          <div class="about-feature"><strong>No Installation</strong><span>Games are designed to be played online.</span></div>
-          <div class="about-feature"><strong>Multiple Genres</strong><span>Discover games across different categories.</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="container section">
-      <div class="section-head"><div><p class="eyebrow">GET STARTED</p><h2>How to Play</h2></div></div>
-      <div class="steps-grid">
-        <div class="step-card"><span class="step-number">01</span><h3>Choose a Game</h3><p>Browse the game library or use search and categories to find something you want to play.</p></div>
-        <div class="step-card"><span class="step-number">02</span><h3>Open the Game</h3><p>Select a game to view its information, instructions and available gameplay options.</p></div>
-        <div class="step-card"><span class="step-number">03</span><h3>Start Playing</h3><p>Follow the instructions shown by the game and start playing directly in your browser.</p></div>
-      </div>
-    </section>
-
-    <section class="container section">
-      <div class="content-panel faq-panel">
-        <p class="eyebrow">FAQ</p><h2>Frequently Asked Questions</h2>
-        <div class="faq-list">
-          <details><summary>Are the games free to play?</summary><p>BrainrotGames provides access to browser games that can be played online. Individual games may be supplied by third-party publishers or distributors.</p></details>
-          <details><summary>Do I need to download anything?</summary><p>No separate installation is required for supported browser games. Games load directly through the web browser.</p></details>
-          <details><summary>Can I play games on mobile devices?</summary><p>Mobile compatibility depends on the individual game. Games that support touch controls can be played on compatible mobile devices.</p></details>
-          <details><summary>Why might a game fail to load?</summary><p>Game availability can depend on the third-party provider. Refreshing the page and checking your internet connection may resolve temporary loading problems.</p></details>
-          <details><summary>Where does the game content come from?</summary><p>BrainrotGames provides access to games supplied through third-party game publishers, distributors and technology providers. Game availability and descriptions may change over time.</p></details>
-        </div>
-      </div>
-    </section>
+    <section class="container section" id="games"><div class="section-head"><div><p class="eyebrow">GAME LIBRARY</p><h2 id="games-title">Popular Browser Games</h2></div><span class="status" id="status">Loading…</span></div><p class="section-intro">Play free browser games directly online. Choose a game below to learn more and start playing.</p><div class="game-grid" id="game-grid"></div><div class="load-more-wrap"><button class="cta secondary" id="load-more">Load More Games</button></div></section>
+    <section class="container section" id="about"><div class="content-panel"><p class="eyebrow">ABOUT BRAINROTGAMES</p><h2>A Simple Place to Play Browser Games</h2><p>BrainrotGames is an online gaming website focused on making browser games easy to discover and play.</p><p>Our library includes games across different genres, including action, arcade, puzzle, racing, casual, farming and other browser-friendly categories.</p><p>Games are provided through third-party game publishers, distributors and technology providers. Game availability and content may change over time.</p><div class="about-features"><div class="about-feature"><strong>Free to Play</strong><span>Play supported games directly in your browser.</span></div><div class="about-feature"><strong>No Installation</strong><span>Games are designed to be played online.</span></div><div class="about-feature"><strong>Multiple Genres</strong><span>Discover games across different categories.</span></div></div></div></section>
+    <section class="container section"><div class="section-head"><div><p class="eyebrow">GET STARTED</p><h2>How to Play</h2></div></div><div class="steps-grid"><div class="step-card"><span class="step-number">01</span><h3>Choose a Game</h3><p>Browse the game library or use search and categories to find something you want to play.</p></div><div class="step-card"><span class="step-number">02</span><h3>Open the Game</h3><p>Select a game to view its information, instructions and available gameplay options.</p></div><div class="step-card"><span class="step-number">03</span><h3>Start Playing</h3><p>Follow the instructions shown by the game and start playing directly in your browser.</p></div></div></section>
+    <section class="container section"><div class="content-panel faq-panel"><p class="eyebrow">FAQ</p><h2>Frequently Asked Questions</h2><div class="faq-list"><details><summary>Are the games free to play?</summary><p>BrainrotGames provides access to browser games that can be played online. Individual games may be supplied by third-party publishers or distributors.</p></details><details><summary>Do I need to download anything?</summary><p>No separate installation is required for supported browser games. Games load directly through the web browser.</p></details><details><summary>Can I play games on mobile devices?</summary><p>Mobile compatibility depends on the individual game. Games that support touch controls can be played on compatible mobile devices.</p></details><details><summary>Why might a game fail to load?</summary><p>Game availability can depend on the third-party provider. Refreshing the page and checking your internet connection may resolve temporary loading problems.</p></details><details><summary>Where does the game content come from?</summary><p>BrainrotGames provides access to games supplied through third-party game publishers, distributors and technology providers. Game availability and descriptions may change over time.</p></details></div></div></section>
   </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div>
-      <nav class="footer-links" aria-label="Footer navigation">
-        <a href="/about.html">About Us</a>
-        <a href="/contact.html">Contact Us</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/cookies.html">Cookie Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-      </nav>
-      <div class="footer-copy"><span>© 2026 BrainrotGames. All rights reserved.</span><p>BrainrotGames provides access to browser games supplied through third-party game publishers, distributors and technology providers. BrainrotGames does not claim ownership of third-party game content unless otherwise stated.</p></div>
-    </div>
-  </footer>
-
+  <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav><div class="footer-copy"><span>© 2026 BrainrotGames. All rights reserved.</span><p>BrainrotGames provides access to browser games supplied through third-party game publishers, distributors and technology providers. BrainrotGames does not claim ownership of third-party game content unless otherwise stated.</p></div></div></footer>
   <script src="/app.js" defer></script>
 </body>
 </html>

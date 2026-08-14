@@ -4,6 +4,21 @@ const FEED =
 const SITE_URL = "https://brainrotgames.me";
 const MAX_PAGES = 100;
 
+const CATEGORY_SLUGS = [
+  "action",
+  "arcade",
+  "puzzle",
+  "racing",
+  "casual",
+  "sports",
+  "adventure",
+  "strategy",
+  "simulation",
+  "board",
+  "card",
+  "word"
+];
+
 function escapeXml(value = "") {
   return String(value).replace(/[<>&'\"]/g, (char) => {
     const map = {
@@ -29,6 +44,8 @@ function slug(value = "") {
 export async function onRequestGet() {
   const urls = [
     `${SITE_URL}/`,
+    `${SITE_URL}/games`,
+    ...CATEGORY_SLUGS.map((category) => `${SITE_URL}/games/${category}`),
     `${SITE_URL}/about`,
     `${SITE_URL}/contact`,
     `${SITE_URL}/privacy`,
@@ -41,51 +58,31 @@ export async function onRequestGet() {
   try {
     for (let page = 1; page <= MAX_PAGES; page++) {
       const response = await fetch(`${FEED}${page}`, {
-        headers: {
-          Accept: "application/json"
-        }
+        headers: { Accept: "application/json" }
       });
 
-      if (!response.ok) {
-        break;
-      }
+      if (!response.ok) break;
 
       const data = await response.json();
-
-      const items = Array.isArray(data.items)
-        ? data.items
-        : [];
+      const items = Array.isArray(data.items) ? data.items : [];
 
       for (const game of items) {
         const id = game.id ?? game.namespace ?? "";
         const title = game.title ?? "";
-
-        if (!id) {
-          continue;
-        }
+        if (!id) continue;
 
         const gameUrl = new URL("/play", SITE_URL);
         gameUrl.searchParams.set("id", String(id));
-
-        if (title) {
-          gameUrl.searchParams.set("title", slug(title));
-        }
+        if (title) gameUrl.searchParams.set("title", slug(title));
 
         const url = gameUrl.toString();
-
         if (!seen.has(url)) {
           seen.add(url);
           urls.push(url);
         }
       }
 
-      if (
-        !data.next_page_url &&
-        !data.next_url &&
-        items.length < 12
-      ) {
-        break;
-      }
+      if (!data.next_page_url && !data.next_url && items.length < 12) break;
     }
   } catch (error) {
     console.error("Sitemap GamePix fetch failed:", error);
@@ -93,11 +90,7 @@ export async function onRequestGet() {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls
-  .map(
-    (url) => `  <url>\n    <loc>${escapeXml(url)}</loc>\n  </url>`
-  )
-  .join("\n")}
+${urls.map((url) => `  <url>\n    <loc>${escapeXml(url)}</loc>\n  </url>`).join("\n")}
 </urlset>`;
 
   return new Response(xml, {

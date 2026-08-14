@@ -2,9 +2,12 @@ export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
 
   const gameId = requestUrl.searchParams.get("id");
-  const title = requestUrl.searchParams.get("title");
+  const requestedTitle = requestUrl.searchParams.get("title") || "";
 
-  // Get the original static play page from Cloudflare Pages.
+  // ------------------------------------------------------------
+  // LOAD ORIGINAL PLAY PAGE
+  // ------------------------------------------------------------
+
   const assetUrl = new URL(requestUrl);
 
   assetUrl.pathname = "/play.html";
@@ -23,30 +26,130 @@ export async function onRequestGet(context) {
 
   let html = await assetResponse.text();
 
-  /*
-   * Build the canonical URL for this game.
-   *
-   * Example:
-   * /play?id=5G91RE&title=garden-master
-   */
+  // ------------------------------------------------------------
+  // HELPERS
+  // ------------------------------------------------------------
+
+  function escapeHtml(value = "") {
+    return String(value).replace(/[&<>"']/g, (char) => {
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      };
+
+      return map[char];
+    });
+  }
+
+  function cleanText(value = "") {
+    return String(value)
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  // ------------------------------------------------------------
+  // GAME DATA
+  // ------------------------------------------------------------
+
+  let gameTitle = requestedTitle
+    ? requestedTitle
+        .replace(/-/g, " ")
+        .replace(/\b\w/g, (char) => char.toUpperCase())
+    : "Game";
+
+  let gameDescription = "";
+
+  if (gameId) {
+    try {
+      const apiUrl = new URL("/api/game", requestUrl.origin);
+
+      apiUrl.searchParams.set("id", gameId);
+
+      const gameResponse = await fetch(apiUrl.toString(), {
+        headers: {
+          Accept: "application/json"
+        }
+      });
+
+      if (gameResponse.ok) {
+        const gameData = await gameResponse.json();
+
+        if (gameData.title) {
+          gameTitle = cleanText(gameData.title);
+        }
+
+        if (gameData.description) {
+          gameDescription = cleanText(gameData.description);
+        }
+      }
+    } catch (error) {
+      // Use the URL title as fallback.
+    }
+  }
+
+  // ------------------------------------------------------------
+  // SEO TITLE
+  // ------------------------------------------------------------
+
+  const seoTitle =
+    `${gameTitle} - Play Free Online | BrainrotGames`;
+
+  // ------------------------------------------------------------
+  // SEO DESCRIPTION
+  // ------------------------------------------------------------
+
+  let seoDescription =
+    `Play ${gameTitle} online for free on BrainrotGames.`;
+
+  if (gameDescription) {
+    seoDescription =
+      `Play ${gameTitle} online for free on BrainrotGames. ${gameDescription}`;
+  }
+
+  seoDescription = cleanText(seoDescription).slice(0, 160);
+
+  // ------------------------------------------------------------
+  // CANONICAL URL
+  // ------------------------------------------------------------
+
   if (gameId) {
     const canonicalUrl = new URL("/play", requestUrl.origin);
 
     canonicalUrl.searchParams.set("id", gameId);
 
-    if (title) {
-      canonicalUrl.searchParams.set("title", title);
+    if (requestedTitle) {
+      canonicalUrl.searchParams.set(
+        "title",
+        requestedTitle
+      );
     }
 
-    /*
-     * Replace the canonical URL that exists
-     * in the original play.html.
-     */
     html = html.replace(
       /(<link\s+rel=["']canonical["'][^>]*\bid=["']canonical-url["'][^>]*\bhref=["'])[^"']*(["'])/i,
-      `$1${canonicalUrl.toString()}$2`
+      `$1${escapeHtml(canonicalUrl.toString())}$2`
     );
   }
+
+  // ------------------------------------------------------------
+  // SERVER-SIDE SEO TITLE
+  // ------------------------------------------------------------
+
+  html = html.replace(
+    /<title>[\s\S]*?<\/title>/i,
+    `<title>${escapeHtml(seoTitle)}</title>`
+  );
+
+  // ------------------------------------------------------------
+  // SERVER-SIDE META DESCRIPTION
+  // ------------------------------------------------------------
+
+  html = html.replace(
+    /(<meta\s+name=["']description["'][^>]*\bid=["']meta-description["'][^>]*content=["'])[^"']*(["'])/i,
+    `$1${escapeHtml(seoDescription)}$2`
+  );
 
   return new Response(html, {
     status: 200,

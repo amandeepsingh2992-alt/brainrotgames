@@ -1,7 +1,7 @@
 const SITE_URL = "https://brainrotgames.me";
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const MAX_FEED_PAGES = 30;
-const PAGE_BATCH_SIZE = 5;
+const BATCH = 5;
 
 const CATEGORY_COPY = {
   action: "Fast-paced browser games with combat, reflexes and quick challenges.",
@@ -19,70 +19,114 @@ const CATEGORY_COPY = {
 };
 
 function escapeHtml(value = "") {
-  return String(value).replace(/[&<>\"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '\"': "&quot;",
-    "'": "&#039;"
-  }[char]));
+  return String(value).replace(/[&<>\"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;"
+  }[c]));
 }
 
 function slug(value = "") {
-  return String(value)
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
+  return String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
-function categoryMatches(gameCategory = "", requestedSlug = "") {
-  const gameSlug = slug(gameCategory);
-  if (!gameSlug || !requestedSlug) return false;
-
-  if (gameSlug === requestedSlug) return true;
-
-  const gameParts = gameSlug.split("-").filter(Boolean);
-  const requestedParts = requestedSlug.split("-").filter(Boolean);
-
-  // Handle common singular/plural differences: word/words, card/cards, etc.
-  const equivalent = (a, b) =>
-    a === b ||
-    a === `${b}s` ||
-    b === `${a}s` ||
-    (a.endsWith("ies") && `${a.slice(0, -3)}y` === b) ||
-    (b.endsWith("ies") && `${b.slice(0, -3)}y` === a);
-
-  if (requestedParts.every((requestedPart) =>
-    gameParts.some((gamePart) => equivalent(gamePart, requestedPart))
-  )) return true;
-
-  if (gameSlug.startsWith(`${requestedSlug}-`)) return true;
-  if (gameSlug.endsWith(`-${requestedSlug}`)) return true;
-  if (gameSlug.includes(`-${requestedSlug}-`)) return true;
-
+function categoryEquivalent(a, b) {
+  a = slug(a); b = slug(b);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  if (a === `${b}s` || b === `${a}s`) return true;
+  if (a.endsWith("ies") && `${a.slice(0, -3)}y` === b) return true;
+  if (b.endsWith("ies") && `${b.slice(0, -3)}y` === a) return true;
   return false;
 }
 
-function gameMatchesCategory(game, requestedSlug) {
+function categoryValues(game) {
   const values = [];
+  const add = value => {
+    if (typeof value === "string") values.push(value);
+    else if (value && typeof value === "object") {
+      values.push(value.slug, value.name, value.title, value.category);
+    }
+  };
+  add(game?.category);
+  for (const key of ["categories", "tags", "genres"]) {
+    const value = game?.[key];
+    if (Array.isArray(value)) value.forEach(add);
+    else add(value);
+  }
+  return values.filter(Boolean);
+}
 
-  if (game?.category) values.push(game.category);
+function matches(game, requested) {
+  return categoryValues(game).some(value => {
+    const s = slug(value);
+    const r = slug(requested);
+    if (categoryEquivalent(s, r)) return true;
+    return s.includes(`-${r}-`) || s.startsWith(`${r}-`) || s.endsWith(`-${r}`);
+  });
+}
 
-  // GamePix exposes secondary categories through `categories` as well as the
-  // primary `category`. Some categories (including Word/Card/Board variants)
-  // may only appear in this array.
-  if (Array.isArray(game?.categories)) {
-    for (const category of game.categories) {
-      if (typeof category === "string") {
-        values.push(category);
-      } else if (category && typeof category === "object") {
-        values.push(category.slug, category.name, category.title, category.category);
+function extractGames(data) {
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(data?.games)) return data.games;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data)) return data;
+  return [];
+}
+
+async function fetchPage(page, requested = "") {
+  try {
+    const url = new URL(FEED + page);
+    if (requested) url.searchParams.set("category", requested);
+    const response = await fetch(url.toString(), { headers: { Accept: "application/json" } });
+    if (!response.ok) return [];
+    return extractGames(await response.json());
+  } catch (error) {
+    console.error("GamePix feed error:", error);
+    return [];
+  }
+}
+
+async function fetchCategoryGames(requested) {
+  const seen = new Set();
+  const found = [];
+
+  // First ask GamePix directly for the requested category. This is important
+  // for sparse categories that may not occur in the first feed pages.
+  for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
+    const pages = [];
+    for (let p = start; p < start + BATCH && p <= MAX_FEED_PAGES; p++) pages.push(p);
+    const results = await Promise.all(pages.map(p => fetchPage(p, requested)));
+
+    for (const games of results) {
+      for (const game of games) {
+        const id = String(game?.id ?? game?.namespace ?? "");
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        if (matches(game, requested)) found.push(game);
+        if (found.length >= 24) return found;
       }
     }
   }
 
-  return values.some((value) => categoryMatches(value, requestedSlug));
+  // Fallback: some feed versions ignore the category parameter. Search the
+  // unfiltered feed too, using all known category/tag/genre fields.
+  if (!found.length) {
+    for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
+      const pages = [];
+      for (let p = start; p < start + BATCH && p <= MAX_FEED_PAGES; p++) pages.push(p);
+      const results = await Promise.all(pages.map(p => fetchPage(p)));
+      for (const games of results) {
+        for (const game of games) {
+          const id = String(game?.id ?? game?.namespace ?? "");
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          if (matches(game, requested)) found.push(game);
+          if (found.length >= 24) return found;
+        }
+      }
+    }
+  }
+  return found;
 }
 
 function gameUrl(game) {
@@ -95,177 +139,28 @@ function gameUrl(game) {
 function gameCard(game) {
   const title = game.title || "Untitled game";
   const category = game.category || "Browser Game";
-  const image = game.banner_image || game.image || game.thumbnailUrl || game.thumbnailUrl100 || "";
-
-  return `
-    <article class="game-card">
-      <a href="${escapeHtml(gameUrl(game))}" aria-label="Play ${escapeHtml(title)}">
-        <div class="thumb">
-          <div class="fallback">🎮</div>
-          ${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" referrerpolicy="no-referrer">` : ""}
-        </div>
-        <div class="card-body">
-          <div class="game-title">${escapeHtml(title)}</div>
-          <div class="game-meta">
-            <span>${escapeHtml(category)}</span>
-            <span>▶ Play</span>
-          </div>
-          <div class="play-btn">Play Now</div>
-        </div>
-      </a>
-    </article>
-  `;
-}
-
-async function fetchFeedPage(page) {
-  try {
-    const response = await fetch(`${FEED}${page}`, {
-      headers: { Accept: "application/json" }
-    });
-
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return Array.isArray(data.items) ? data.items : [];
-  } catch (error) {
-    console.error(`GamePix category fetch failed for page ${page}:`, error);
-    return [];
-  }
-}
-
-async function fetchCategoryGames(requestedSlug) {
-  const seen = new Set();
-  const matches = [];
-
-  for (let start = 1; start <= MAX_FEED_PAGES; start += PAGE_BATCH_SIZE) {
-    const pages = [];
-
-    for (
-      let page = start;
-      page < start + PAGE_BATCH_SIZE && page <= MAX_FEED_PAGES;
-      page += 1
-    ) {
-      pages.push(page);
-    }
-
-    const pageResults = await Promise.all(pages.map(fetchFeedPage));
-
-    for (const pageItems of pageResults) {
-      for (const game of pageItems) {
-        const id = String(game.id ?? game.namespace ?? "");
-        if (!id || seen.has(id)) continue;
-        seen.add(id);
-
-        if (gameMatchesCategory(game, requestedSlug)) {
-          matches.push(game);
-        }
-
-        if (matches.length >= 24) return matches;
-      }
-    }
-  }
-
-  return matches;
+  const image = game.banner_image || game.image || game.thumbnailUrl || game.thumbnailUrl100 || game.thumbnail_url || "";
+  return `<article class="game-card"><a href="${escapeHtml(gameUrl(game))}" aria-label="Play ${escapeHtml(title)}"><div class="thumb"><div class="fallback">🎮</div>${image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(title)}" loading="lazy" referrerpolicy="no-referrer">` : ""}</div><div class="card-body"><div class="game-title">${escapeHtml(title)}</div><div class="game-meta"><span>${escapeHtml(category)}</span><span>▶ Play</span></div><div class="play-btn">Play Now</div></div></a></article>`;
 }
 
 export async function onRequestGet(context) {
-  const rawCategory = String(context.params.category || "").trim();
-  const categorySlug = slug(rawCategory);
-  const category = categorySlug
-    .replace(/-/g, " ")
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  const categorySlug = slug(context.params.category || "");
+  if (!categorySlug) return Response.redirect(`${SITE_URL}/games`, 301);
 
-  if (!categorySlug) {
-    return Response.redirect(`${SITE_URL}/games`, 301);
-  }
-
+  const category = categorySlug.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase());
   const description = CATEGORY_COPY[categorySlug] || `Browse ${category} browser games and play them online for free.`;
   let games = [];
-
-  try {
-    games = await fetchCategoryGames(categorySlug);
-  } catch (error) {
-    console.error("Category page feed error:", error);
-  }
+  try { games = await fetchCategoryGames(categorySlug); }
+  catch (error) { console.error("Category page error:", error); }
 
   const title = `${category} Games - Play Free Online | BrainrotGames`;
   const canonical = `${SITE_URL}/games/${categorySlug}`;
-  const gameMarkup = games.length
-    ? games.map(gameCard).join("\n")
-    : `<div class="empty"><strong>No games are available in this category right now.</strong><br><br>Check back soon or browse another category.</div>`;
+  const gameMarkup = games.length ? games.map(gameCard).join("\n") : `<div class="empty"><strong>No games are available in this category right now.</strong><br><br>Check back soon or browse another category.</div>`;
 
-  const html = `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="index,follow">
-  <meta name="description" content="${escapeHtml(description)}">
-  <title>${escapeHtml(title)}</title>
-  <link rel="canonical" href="${escapeHtml(canonical)}">
-  <link rel="stylesheet" href="/styles.css">
-</head>
-<body>
-  <header class="site-header">
-    <div class="container nav">
-      <a class="brand" href="/" aria-label="BrainrotGames home">
-        <span class="brand-mark">BG</span>
-        <span>Brainrot<span>Games</span></span>
-      </a>
-      <nav aria-label="Main navigation">
-        <a href="/">Home</a>
-        <a href="/games">Categories</a>
-        <a href="/#games">Games</a>
-      </nav>
-    </div>
-  </header>
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><meta name="description" content="${escapeHtml(description)}"><title>${escapeHtml(title)}</title><link rel="canonical" href="${escapeHtml(canonical)}"><link rel="stylesheet" href="/styles.css"></head><body>
+<header class="site-header"><div class="container nav"><a class="brand" href="/" aria-label="BrainrotGames home"><span class="brand-mark">BG</span><span>Brainrot<span>Games</span></span></a><nav aria-label="Main navigation"><a href="/">Home</a><a href="/games">Categories</a><a href="/#games">Games</a></nav></div></header>
+<main class="container section"><div class="breadcrumbs" style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:24px"><a href="/">Home</a><span>/</span><a href="/games">Categories</a><span>/</span><span>${escapeHtml(category)}</span></div><div class="section-head"><div><p class="eyebrow">BROWSER GAMES</p><h1>${escapeHtml(category)} Games</h1></div></div><p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p><div class="game-grid">${gameMarkup}</div><section class="content-panel" style="margin-top:40px"><p class="eyebrow">ABOUT THIS CATEGORY</p><h2>Free ${escapeHtml(category)} Browser Games</h2><p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p><p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p></section></main>
+<footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav></div></footer></body></html>`;
 
-  <main class="container section">
-    <div class="breadcrumbs" style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:24px;">
-      <a href="/">Home</a><span>/</span><a href="/games">Categories</a><span>/</span><span>${escapeHtml(category)}</span>
-    </div>
-
-    <div class="section-head">
-      <div>
-        <p class="eyebrow">BROWSER GAMES</p>
-        <h1>${escapeHtml(category)} Games</h1>
-      </div>
-    </div>
-
-    <p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p>
-
-    <div class="game-grid">
-      ${gameMarkup}
-    </div>
-
-    <section class="content-panel" style="margin-top:40px;">
-      <p class="eyebrow">ABOUT THIS CATEGORY</p>
-      <h2>Free ${escapeHtml(category)} Browser Games</h2>
-      <p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p>
-      <p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p>
-    </section>
-  </main>
-
-  <footer class="site-footer">
-    <div class="container footer-inner">
-      <div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div>
-      <nav class="footer-links" aria-label="Footer navigation">
-        <a href="/about.html">About Us</a>
-        <a href="/contact.html">Contact Us</a>
-        <a href="/privacy.html">Privacy Policy</a>
-        <a href="/cookies.html">Cookie Policy</a>
-        <a href="/terms.html">Terms of Service</a>
-      </nav>
-    </div>
-  </footer>
-</body>
-</html>`;
-
-  return new Response(html, {
-    status: 200,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": "public, max-age=300"
-    }
-  });
+  return new Response(html, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
 }

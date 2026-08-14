@@ -34,14 +34,15 @@ async function fetchGames(page = 1, category = "All") {
 }
 
 function renderCategories() {
-  // Keep the homepage lightweight: the complete 147-category directory lives at /games.
-  const categories = ["Action", "Adventure", "Arcade", "Casual", "Puzzle", "Racing", "Sports", "Strategy", "Simulation", "Board", "Card", "Word"];
-  categoryRow.innerHTML = ["All", ...categories].map(category => {
-    const label = category === "All" ? "All Games" : category;
-    const href = category === "All" ? "/#games" : `/games/${slug(category)}`;
-    const active = category === state.category;
-    return `<a class="category ${active ? "active" : ""}" href="${href}" aria-current="${active ? "page" : "false"}">${esc(label)}</a>`;
-  }).join("");
+  // Keep the complete category directory server-rendered in index.html.
+  // Only update its active state; never replace the full category list.
+  if (!categoryRow) return;
+  categoryRow.querySelectorAll("a.category").forEach(link => {
+    const isAll = link.getAttribute("href") === "/#games" || link.textContent.trim() === "All Games";
+    const active = isAll ? state.category === "All" : false;
+    link.classList.toggle("active", active);
+    link.setAttribute("aria-current", active ? "page" : "false");
+  });
 }
 function filteredGames() {
   const q = state.search.trim().toLowerCase();

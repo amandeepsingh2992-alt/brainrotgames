@@ -22,11 +22,9 @@ const CATEGORY_COPY = {
 function escapeHtml(value = "") {
   return String(value).replace(/[&<>\"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[c]));
 }
-
 function slug(value = "") {
   return String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
-
 function categoryEquivalent(a, b) {
   a = slug(a); b = slug(b);
   if (!a || !b) return false;
@@ -36,7 +34,6 @@ function categoryEquivalent(a, b) {
   if (b.endsWith("ies") && `${b.slice(0, -3)}y` === a) return true;
   return false;
 }
-
 function categoryValues(game) {
   const values = [];
   const add = value => {
@@ -50,7 +47,6 @@ function categoryValues(game) {
   }
   return values.filter(Boolean);
 }
-
 function matches(game, requested) {
   return categoryValues(game).some(value => {
     const s = slug(value), r = slug(requested);
@@ -58,7 +54,6 @@ function matches(game, requested) {
     return s.includes(`-${r}-`) || s.startsWith(`${r}-`) || s.endsWith(`-${r}`);
   });
 }
-
 function extractGames(data) {
   if (Array.isArray(data?.items)) return data.items;
   if (Array.isArray(data?.games)) return data.games;
@@ -67,15 +62,11 @@ function extractGames(data) {
   if (Array.isArray(data)) return data;
   return [];
 }
-
 async function fetchPage(page, requested = "") {
   try {
     const url = new URL(FEED + page);
     if (requested) url.searchParams.set("category", requested);
-    const response = await fetch(url.toString(), {
-      headers: { Accept: "application/json" },
-      cf: { cacheTtl: 900, cacheEverything: true }
-    });
+    const response = await fetch(url.toString(), { headers: { Accept: "application/json" }, cf: { cacheTtl: 900, cacheEverything: true } });
     if (!response.ok) return [];
     return extractGames(await response.json());
   } catch (error) {
@@ -83,11 +74,9 @@ async function fetchPage(page, requested = "") {
     return [];
   }
 }
-
 async function fetchCategoryGames(requested) {
   const seen = new Set();
   const found = [];
-
   for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
     const pages = Array.from({ length: Math.min(BATCH, MAX_FEED_PAGES - start + 1) }, (_, i) => start + i);
     const results = await Promise.all(pages.map(p => fetchPage(p, requested)));
@@ -101,9 +90,6 @@ async function fetchCategoryGames(requested) {
       }
     }
   }
-
-  // Some feed versions may ignore the category parameter. Search a smaller
-  // unfiltered window as a fallback rather than blocking on 30+ upstream calls.
   if (!found.length) {
     for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
       const pages = Array.from({ length: Math.min(BATCH, MAX_FEED_PAGES - start + 1) }, (_, i) => start + i);
@@ -121,14 +107,12 @@ async function fetchCategoryGames(requested) {
   }
   return found;
 }
-
 function gameUrl(game) {
   const url = new URL("/play", SITE_URL);
   url.searchParams.set("id", String(game.id ?? game.namespace ?? ""));
   if (game.title) url.searchParams.set("title", slug(game.title));
   return url.toString();
 }
-
 function gameCard(game) {
   const title = game.title || "Untitled game";
   const category = game.category || "Browser Game";
@@ -141,7 +125,6 @@ export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
   const categorySlug = slug(context.params.category || "");
   if (!categorySlug) return Response.redirect(`${SITE_URL}/games`, 301);
-
   const cacheKey = new Request(requestUrl.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
@@ -157,17 +140,11 @@ export async function onRequestGet(context) {
   const gameMarkup = games.length ? games.map(gameCard).join("\n") : `<div class="empty"><strong>No games are available in this category right now.</strong><br><br>Check back soon or browse another category.</div>`;
 
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow"><meta name="description" content="${escapeHtml(description)}"><title>${escapeHtml(title)}</title><link rel="canonical" href="${escapeHtml(canonical)}"><link rel="stylesheet" href="/styles.css"></head><body>
-<header class="site-header"><div class="container nav"><a class="brand" href="/" aria-label="BrainrotGames home"><span class="brand-mark">BG</span><span>Brainrot<span>Games</span></span></a><nav aria-label="Main navigation"><a href="/">Home</a><a href="/games">Categories</a><a href="/#games">Games</a></nav></div></header>
-<main class="container section"><div class="breadcrumbs" style="display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;margin-bottom:24px"><a href="/">Home</a><span>/</span><a href="/games">Categories</a><span>/</span><span>${escapeHtml(category)}</span></div><div class="section-head"><div><p class="eyebrow">BROWSER GAMES</p><h1>${escapeHtml(category)} Games</h1></div></div><p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p><div class="game-grid">${gameMarkup}</div><section class="content-panel" style="margin-top:40px"><p class="eyebrow">ABOUT THIS CATEGORY</p><h2>Free ${escapeHtml(category)} Browser Games</h2><p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p><p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p></section></main>
+<header class="site-header"><div class="container nav"><a class="brand" href="/" aria-label="BrainrotGames home"><span class="brand-mark">BG</span><span>Brainrot<span>Games</span></span></a><nav aria-label="Main navigation"><a href="/">Home</a><a href="/games">Categories</a><a href="/#games">Games</a><a href="/#about">About</a></nav></div></header>
+<main class="container category-page"><div class="breadcrumbs"><a href="/">Home</a><span class="separator">/</span><a href="/games">Categories</a><span class="separator">/</span><span>${escapeHtml(category)}</span></div><div class="section-head"><div><p class="eyebrow">BROWSER GAMES</p><h1>${escapeHtml(category)} Games</h1></div></div><p class="section-intro">${escapeHtml(description)} Discover free games below and start playing directly in your browser.</p><div class="game-grid">${gameMarkup}</div><section class="content-panel category-intro-panel"><p class="eyebrow">ABOUT THIS CATEGORY</p><h2>Free ${escapeHtml(category)} Browser Games</h2><p>${escapeHtml(description)} BrainrotGames makes it easy to discover browser games without installing a separate game client.</p><p>Choose a game above to view its details and start playing online. Game availability, descriptions and artwork may change as the third-party game catalogue is updated.</p></section></main>
 <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav></div></footer></body></html>`;
 
-  const response = new Response(html, {
-    status: 200,
-    headers: {
-      "content-type": "text/html; charset=utf-8",
-      "cache-control": `public, max-age=60, s-maxage=${CACHE_TTL}, stale-while-revalidate=86400`
-    }
-  });
+  const response = new Response(html, { status: 200, headers: { "content-type": "text/html; charset=utf-8", "cache-control": `public, max-age=60, s-maxage=${CACHE_TTL}, stale-while-revalidate=86400` } });
   context.waitUntil(cache.put(cacheKey, response.clone()));
   return response;
 }

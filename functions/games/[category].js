@@ -40,19 +40,49 @@ function categoryMatches(gameCategory = "", requestedSlug = "") {
   const gameSlug = slug(gameCategory);
   if (!gameSlug || !requestedSlug) return false;
 
-  // Exact match first.
   if (gameSlug === requestedSlug) return true;
 
-  // Match common GamePix variants such as word-games, puzzle-game, sports-games, etc.
-  const gameParts = gameSlug.split("-");
-  const requestedParts = requestedSlug.split("-");
+  const gameParts = gameSlug.split("-").filter(Boolean);
+  const requestedParts = requestedSlug.split("-").filter(Boolean);
 
-  if (requestedParts.every((part) => gameParts.includes(part))) return true;
+  // Handle common singular/plural differences: word/words, card/cards, etc.
+  const equivalent = (a, b) =>
+    a === b ||
+    a === `${b}s` ||
+    b === `${a}s` ||
+    (a.endsWith("ies") && `${a.slice(0, -3)}y` === b) ||
+    (b.endsWith("ies") && `${b.slice(0, -3)}y` === a);
+
+  if (requestedParts.every((requestedPart) =>
+    gameParts.some((gamePart) => equivalent(gamePart, requestedPart))
+  )) return true;
+
   if (gameSlug.startsWith(`${requestedSlug}-`)) return true;
   if (gameSlug.endsWith(`-${requestedSlug}`)) return true;
   if (gameSlug.includes(`-${requestedSlug}-`)) return true;
 
   return false;
+}
+
+function gameMatchesCategory(game, requestedSlug) {
+  const values = [];
+
+  if (game?.category) values.push(game.category);
+
+  // GamePix exposes secondary categories through `categories` as well as the
+  // primary `category`. Some categories (including Word/Card/Board variants)
+  // may only appear in this array.
+  if (Array.isArray(game?.categories)) {
+    for (const category of game.categories) {
+      if (typeof category === "string") {
+        values.push(category);
+      } else if (category && typeof category === "object") {
+        values.push(category.slug, category.name, category.title, category.category);
+      }
+    }
+  }
+
+  return values.some((value) => categoryMatches(value, requestedSlug));
 }
 
 function gameUrl(game) {
@@ -107,8 +137,6 @@ async function fetchCategoryGames(requestedSlug) {
   const seen = new Set();
   const matches = [];
 
-  // Search the feed in small parallel batches. This gives sparse categories
-  // (especially Word/Card/Board) enough depth without firing 30 requests at once.
   for (let start = 1; start <= MAX_FEED_PAGES; start += PAGE_BATCH_SIZE) {
     const pages = [];
 
@@ -128,7 +156,7 @@ async function fetchCategoryGames(requestedSlug) {
         if (!id || seen.has(id)) continue;
         seen.add(id);
 
-        if (categoryMatches(game.category, requestedSlug)) {
+        if (gameMatchesCategory(game, requestedSlug)) {
           matches.push(game);
         }
 

@@ -1,6 +1,6 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const CACHE_TTL = 900;
-const BLOCKED_GAME_IDS = new Set(["7RU2YF"]);
+const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
   return new Response(JSON.stringify(data), {

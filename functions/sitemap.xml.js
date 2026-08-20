@@ -1,6 +1,7 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const SITE_URL = "https://brainrotgames.me";
 const MAX_PAGES = 100;
+const BLOCKED_GAME_IDS = new Set(["7RU2YF"]);
 const CATEGORY_NAMES = ["2048","Action","Addictive","Adventure","Airplane","Animal","Anime","Arcade","Archery","Ball","Baseball","Basketball","Battle","Battle Royale","Bejeweled","Bike","Block","Board","Bowling","Boxing","Brain","Bubble Shooter","Building","Car","Card","Casual","Cats","Checkers","Chess","Christmas","City Building","Classics","Clicker","Coco","Coding","Coloring","Cooking","Cool","Crazy","Cricket","Dinosaur","Dirt Bike","Dragons","Drawing","Dress Up","Drifting","Driving","Educational","Escape","Family","Farming","Fashion","Fighting","Fire And Water","First Person Shooter","Fishing","Flash","Flight","Fun","Games For Girls","Gangster","Gdevelop","Golf","Granny","Gun","Hair Salon","Halloween","Helicopter","Hidden Object","Hockey","Horror","Horse","Hunting","Hyper Casual","Idle","Io","Jewel","Jigsaw Puzzles","Jumping","Knight","Mahjong","Makeup","Management","Mario","Match 3","Math","Memory","Minecraft","Mining","Mmorpg","Mobile","Money","Monster","Multiplayer","Music","Naval","Ninja","Ninja Turtle","Offroad","Open World","Parking","Parkour","Piano","Pirates","Pixel","Platformer","Police","Pool","Puzzle","Racing","Restaurant","Retro","Robots","Rpg","Runner","Scary","Scrabble","Sharks","Shooter","Simulation","Skateboard","Skibidi Toilet","Skill","Snake","Sniper","Soccer","Solitaire","Spinner","Sports","Stickman","Strategy","Surgery","Survival","Sword","Tanks","Tap","Tetris","Trivia","Truck","Two Player","Tycoon","War","Word","World Cup","Worm","Wrestling","Zombie"];
 
 function escapeXml(value = "") {
@@ -26,11 +27,11 @@ export async function onRequestGet(context) {
       const data = await response.json();
       const items = Array.isArray(data.items) ? data.items : [];
       for (const game of items) {
-        const id = game.id ?? game.namespace ?? "";
-        if (!id) continue;
+        const id = String(game.id ?? game.namespace ?? "");
+        if (!id || BLOCKED_GAME_IDS.has(id)) continue;
         // Keep only the stable game-ID URL in the sitemap. The optional title query parameter is intentionally omitted because /play canonicalizes to the ID-only URL.
         const gameUrl = new URL("/play", SITE_URL);
-        gameUrl.searchParams.set("id", String(id));
+        gameUrl.searchParams.set("id", id);
         const url = gameUrl.toString();
         if (!seen.has(url)) { seen.add(url); urls.push(url); }
       }

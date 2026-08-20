@@ -1,6 +1,6 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const CACHE_TTL = 900;
-const BLOCKED_GAME_IDS = new Set(["7RU2YF"]);
+const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
   return new Response(JSON.stringify(data), {
@@ -11,7 +11,6 @@ function json(data, status = 200, cache = CACHE_TTL) {
     }
   });
 }
-
 function extractItems(data) {
   return Array.isArray(data?.items) ? data.items
     : Array.isArray(data?.games) ? data.games
@@ -19,7 +18,6 @@ function extractItems(data) {
     : Array.isArray(data?.data) ? data.data
     : [];
 }
-
 function isSafeGameUrl(value) {
   try {
     const url = new URL(value);
@@ -28,36 +26,28 @@ function isSafeGameUrl(value) {
     return false;
   }
 }
-
 async function isUnavailableGame(game) {
   const id = String(game.id ?? game.namespace ?? "");
   const gameUrl = String(game.url || "").trim();
   if (!id || BLOCKED_GAME_IDS.has(id) || !isSafeGameUrl(gameUrl)) return true;
-
   try {
     const response = await fetch(gameUrl, {
       method: "GET",
       redirect: "follow",
       headers: { Accept: "text/html,application/xhtml+xml" },
       signal: AbortSignal.timeout(4000),
-      cf: { cacheTtl: 900, cacheEverything: true }
+      cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
     });
-
     if (response.status === 404 || response.status === 410) return true;
-
     const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
     if (xFrame === "deny" || xFrame === "sameorigin") return true;
-
     const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
     if (/frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp)) return true;
-
     return false;
   } catch {
-    // Network/timeouts can be transient. Keep the game rather than falsely deleting it.
     return false;
   }
 }
-
 async function findInPages(start, end, id) {
   const responses = await Promise.all(
     Array.from({ length: end - start + 1 }, (_, i) => fetch(FEED + (start + i), {
@@ -72,23 +62,18 @@ async function findInPages(start, end, id) {
   }
   return null;
 }
-
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const id = url.searchParams.get("id");
   if (!id) return json({ error: "Missing id" }, 400, 30);
-
   const cacheKey = new Request(url.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
-
   try {
-    // Fast path: five pages concurrently. Fall back to pages 6-10 only when needed.
     let game = await findInPages(1, 5, id);
     if (!game) game = await findInPages(6, 10, id);
     if (!game || await isUnavailableGame(game)) return json({ error: "Game not found or unavailable" }, 404, 60);
-
     const result = json({
       id: game.id ?? game.namespace ?? "",
       title: game.title ?? "Untitled game",

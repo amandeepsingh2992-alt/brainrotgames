@@ -1,5 +1,6 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const CACHE_TTL = 900;
+const BLOCKED_GAME_IDS = new Set(["7RU2YF"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
   return new Response(JSON.stringify(data), {
@@ -9,6 +10,44 @@ function json(data, status = 200, cache = CACHE_TTL) {
       "cache-control": `public, max-age=60, s-maxage=${cache}, stale-while-revalidate=86400`
     }
   });
+}
+
+function isSafeGameUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && (url.hostname === "games.gamepix.com" || url.hostname.endsWith(".gamepix.com"));
+  } catch {
+    return false;
+  }
+}
+
+async function isUnavailableGame(game) {
+  const id = String(game.id ?? game.namespace ?? "");
+  const gameUrl = String(game.url || "").trim();
+  if (!id || BLOCKED_GAME_IDS.has(id) || !isSafeGameUrl(gameUrl)) return true;
+
+  try {
+    const response = await fetch(gameUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: { Accept: "text/html,application/xhtml+xml" },
+      signal: AbortSignal.timeout(4000),
+      cf: { cacheTtl: 900, cacheEverything: true }
+    });
+
+    if (response.status === 404 || response.status === 410) return true;
+
+    const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
+    if (xFrame === "deny" || xFrame === "sameorigin") return true;
+
+    const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
+    if (/frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp)) return true;
+
+    return false;
+  } catch {
+    // Network/timeouts can be transient. Keep the game rather than falsely deleting it.
+    return false;
+  }
 }
 
 export async function onRequestGet(context) {
@@ -39,7 +78,7 @@ export async function onRequestGet(context) {
       : Array.isArray(data.results) ? data.results
       : Array.isArray(data) ? data : [];
 
-    const items = sourceGames.map((g) => ({
+    const rawItems = sourceGames.map((g) => ({
       id: g.id ?? g.namespace ?? "",
       title: g.title ?? "Untitled game",
       description: g.description ?? "",
@@ -50,13 +89,17 @@ export async function onRequestGet(context) {
       height: g.height
     }));
 
+    // Remove only games we can positively identify as unavailable or unsafe.
+    const availability = await Promise.all(rawItems.map(async (game) => ({ game, unavailable: await isUnavailableGame(game) })));
+    const items = availability.filter(({ unavailable }) => !unavailable).map(({ game }) => game);
+
     const responseOut = json({
       items,
       next_page_url: data.next_page_url || null,
       next_url: data.next_url || null,
       page,
       category,
-      total: data.total ?? items.length
+      total: items.length
     });
 
     context.waitUntil(cache.put(cacheKey, responseOut.clone()));

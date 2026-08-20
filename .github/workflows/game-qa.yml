@@ -1,0 +1,51 @@
+name: Game Catalogue QA
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * *"
+
+permissions:
+  contents: read
+
+jobs:
+  game-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Run browser game QA
+        id: qa
+        continue-on-error: true
+        env:
+          BASE_URL: https://brainrotgames.me
+          MAX_PAGES: 100
+          CONCURRENCY: 6
+          RETRIES: 2
+        run: node scripts/game-qa.mjs
+
+      - name: Upload QA report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: game-qa-report
+          path: qa-results/
+          retention-days: 30
+
+      - name: Fail if confirmed broken games exist
+        if: steps.qa.outcome == 'failure'
+        run: |
+          echo "Confirmed game failures were detected. Review the game-qa-report artifact before changing the blocklist."
+          exit 1

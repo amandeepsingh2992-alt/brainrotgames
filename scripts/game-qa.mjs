@@ -3,7 +3,8 @@ import fs from "node:fs/promises";
 
 const BASE_URL = process.env.BASE_URL || "https://brainrotgames.me";
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
-const MAX_PAGES = Number(process.env.MAX_PAGES || 100);
+const START_PAGE = Number(process.env.START_PAGE || 1);
+const END_PAGE = Number(process.env.END_PAGE || 100);
 const CONCURRENCY = Number(process.env.CONCURRENCY || 12);
 const RETRIES = Number(process.env.RETRIES || 2);
 const LOAD_WAIT = Number(process.env.LOAD_WAIT || 4000);
@@ -15,7 +16,7 @@ function extractItems(data) {
 
 async function getGames() {
   const all = [];
-  for (let page = 1; page <= MAX_PAGES; page++) {
+  for (let page = START_PAGE; page <= END_PAGE; page++) {
     const response = await fetch(FEED + page, { headers: { Accept: "application/json" } });
     if (!response.ok) break;
     const data = await response.json();
@@ -33,9 +34,8 @@ async function probeSiteAccess(browser) {
   try {
     const response = await page.goto(`${BASE_URL}/play?id=737HCH`, { waitUntil: "domcontentloaded", timeout: 15000 });
     return { status: response?.status() ?? null, ok: Boolean(response?.ok()) };
-  } catch (error) {
-    return { status: null, ok: false, error: error.message };
-  } finally { await context.close().catch(() => {}); }
+  } catch (error) { return { status: null, ok: false, error: error.message }; }
+  finally { await context.close().catch(() => {}); }
 }
 
 async function inspectFrame(frame) {
@@ -44,18 +44,13 @@ async function inspectFrame(frame) {
     const text = (body?.innerText || "").replace(/\s+/g, " ").trim();
     const canvases = [...document.querySelectorAll("canvas")];
     const canvasInfo = canvases.map((canvas) => {
-      let webgl = false;
-      try { webgl = Boolean(canvas.getContext("webgl") || canvas.getContext("webgl2")); } catch {}
+      let webgl = false; try { webgl = Boolean(canvas.getContext("webgl") || canvas.getContext("webgl2")); } catch {}
       const rect = canvas.getBoundingClientRect();
       return { width: canvas.width, height: canvas.height, visibleWidth: rect.width, visibleHeight: rect.height, webgl };
     });
     const selectors = ["canvas", "video", "iframe", "#game", "#game-container", ".game", "[id*='game' i]", "[class*='game' i]", "[id*='unity' i]", "[class*='unity' i]", "[id*='phaser' i]", "[class*='phaser' i]", "[id*='pixi' i]", "[class*='pixi' i]", "[id*='construct' i]", "[class*='construct' i]"];
-    const selectorHits = {};
-    for (const selector of selectors) selectorHits[selector] = document.querySelectorAll(selector).length;
-    const largeVisibleElements = [...document.querySelectorAll("body *")].filter((el) => {
-      const r = el.getBoundingClientRect(); const style = getComputedStyle(el);
-      return r.width >= 300 && r.height >= 200 && style.display !== "none" && style.visibility !== "hidden";
-    }).length;
+    const selectorHits = {}; for (const selector of selectors) selectorHits[selector] = document.querySelectorAll(selector).length;
+    const largeVisibleElements = [...document.querySelectorAll("body *")].filter((el) => { const r = el.getBoundingClientRect(); const style = getComputedStyle(el); return r.width >= 300 && r.height >= 200 && style.display !== "none" && style.visibility !== "hidden"; }).length;
     return { url: location.href, htmlLength: body?.innerHTML?.length || 0, textLength: text.length, textSample: text.slice(0, 300), canvasInfo, selectorHits, largeVisibleElements };
   });
 }
@@ -63,9 +58,7 @@ async function inspectFrame(frame) {
 async function inspectGame(page) {
   await page.waitForTimeout(LOAD_WAIT);
   const reports = [];
-  for (const frame of page.frames()) {
-    try { reports.push(await inspectFrame(frame)); } catch (error) { reports.push({ url: frame.url(), error: error.message }); }
-  }
+  for (const frame of page.frames()) { try { reports.push(await inspectFrame(frame)); } catch (error) { reports.push({ url: frame.url(), error: error.message }); } }
   const canvases = reports.flatMap((r) => r.canvasInfo || []);
   const hasUsableCanvas = canvases.some((c) => c.width >= 100 && c.height >= 100 && c.visibleWidth >= 100 && c.visibleHeight >= 100);
   const hasWebGL = canvases.some((c) => c.webgl && c.visibleWidth >= 100 && c.visibleHeight >= 100);
@@ -80,24 +73,17 @@ async function checkEmbeddedGame(browser, game) {
   for (let attempt = 1; attempt <= RETRIES; attempt++) {
     const context = await browser.newContext({ viewport: { width: 1365, height: 900 } });
     const page = await context.newPage();
-    const errors = [];
-    const failedRequests = [];
-    const iframeResponses = [];
+    const errors = []; const failedRequests = []; const iframeResponses = [];
     page.on("pageerror", (error) => errors.push(error.message));
     page.on("requestfailed", (request) => { if (request.frame() !== page.mainFrame()) failedRequests.push(`${request.url()} :: ${request.failure()?.errorText || "failed"}`); });
     page.on("response", (response) => { if (response.request().resourceType() === "document") iframeResponses.push({ url: response.url(), status: response.status() }); });
     try {
       await page.setContent(`<!doctype html><html><body style="margin:0;background:#050810"><iframe id="game-frame" src="${game.url.replace(/"/g, "&quot;")}" style="width:100vw;height:100vh;border:0" allow="autoplay; fullscreen; gamepad; clipboard-read; clipboard-write" allowfullscreen></iframe></body></html>`, { waitUntil: "domcontentloaded", timeout: 5000 });
       await page.locator("#game-frame").waitFor({ state: "attached", timeout: 3000 });
-      const inspection = await Promise.race([
-        inspectGame(page),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("game-timeout")), GAME_TIMEOUT))
-      ]);
+      const inspection = await Promise.race([inspectGame(page), new Promise((_, reject) => setTimeout(() => reject(new Error("game-timeout")), GAME_TIMEOUT))]);
       const fatal = errors.some((e) => /uncaught|syntaxerror|out of memory|cannot read properties|is not defined|failed to load/i.test(e));
-      const response404 = iframeResponses.some((r) => r.status === 404 || r.status === 410);
-      const response403 = iframeResponses.some((r) => r.status === 403);
-      if (response404) throw new Error("provider-status-404");
-      if (response403) throw new Error("provider-status-403");
+      if (iframeResponses.some((r) => r.status === 404 || r.status === 410)) throw new Error("provider-status-404");
+      if (iframeResponses.some((r) => r.status === 403)) throw new Error("provider-status-403");
       if (!inspection.hasRealGameSignal) throw new Error(`game-not-initialized; frames=${inspection.frames}; canvas=${inspection.hasUsableCanvas}; webgl=${inspection.hasWebGL}; gameSelector=${inspection.hasGameSelector}; largeContent=${inspection.hasLargeContent}; meaningfulBody=${inspection.hasMeaningfulBody}`);
       if (fatal && !inspection.hasUsableCanvas && !inspection.hasWebGL) throw new Error(`fatal-game-script-error: ${errors.slice(0, 2).join(" | ")}`);
       await context.close();
@@ -114,7 +100,6 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const siteProbe = await probeSiteAccess(browser);
   const siteBlocked = siteProbe.status === 403;
-  if (siteBlocked) console.warn("BrainrotGames returned HTTP 403 to the GitHub Actions runner; this is an environment signal only.");
   const results = []; let cursor = 0;
   async function worker() {
     while (cursor < games.length) {
@@ -129,10 +114,12 @@ async function main() {
   results.sort((a, b) => a.id.localeCompare(b.id));
   const failed = results.filter((r) => r.status === "fail");
   await fs.mkdir("qa-results", { recursive: true });
-  await fs.writeFile("qa-results/game-qa.json", JSON.stringify({ generatedAt: new Date().toISOString(), mode: "real-browser-cross-origin-iframe", total: results.length, passed: results.length - failed.length, failed: failed.length, environmentBlocked: siteBlocked, siteProbe, results }, null, 2));
+  const summary = { generatedAt: new Date().toISOString(), startPage: START_PAGE, endPage: END_PAGE, mode: "real-browser-cross-origin-iframe", total: results.length, passed: results.length - failed.length, failed: failed.length, environmentBlocked: siteBlocked, siteProbe };
+  await fs.writeFile("qa-results/game-qa.json", JSON.stringify({ ...summary, results }, null, 2));
+  await fs.writeFile("qa-results/summary.json", JSON.stringify(summary, null, 2));
   await fs.writeFile("qa-results/blocked-ids.txt", failed.map((r) => r.id).join("\n") + (failed.length ? "\n" : ""));
-  await fs.writeFile("qa-results/environment.txt", siteBlocked ? `BrainrotGames returned HTTP 403 to the GitHub Actions runner. This was treated only as an environment signal.\n` : `BrainrotGames site probe status: ${siteProbe.status ?? "unknown"}.\n`);
-  console.log(`Embedded QA scanned ${results.length} games; ${results.length - failed.length} passed and ${failed.length} failed after ${RETRIES} attempts.`);
+  await fs.writeFile("qa-results/environment.txt", siteBlocked ? `BrainrotGames returned HTTP 403 to the GitHub Actions runner. Treated only as an environment signal.\n` : `BrainrotGames site probe status: ${siteProbe.status ?? "unknown"}.\n`);
+  console.log(`Batch pages ${START_PAGE}-${END_PAGE}: scanned ${results.length}; ${results.length - failed.length} passed; ${failed.length} failed.`);
   if (failed.length) process.exitCode = 2;
 }
-main().catch((error) => { console.error(error); process.exitCode = 1; });
+main().catch(async (error) => { await fs.mkdir("qa-results", { recursive: true }).catch(() => {}); await fs.writeFile("qa-results/fatal-error.txt", String(error?.stack || error)).catch(() => {}); console.error(error); process.exitCode = 1; });

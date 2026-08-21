@@ -51,3 +51,5 @@ jobs:
         run: |
           echo "Confirmed game failures were detected. Review the game-qa-report artifact before changing the blocklist."
           exit 1
+
+# Manual QA trigger checkpoint: rerun the corrected provider-level scanner.

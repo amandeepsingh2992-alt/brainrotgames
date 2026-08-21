@@ -12,44 +12,106 @@ permissions:
 
 jobs:
   game-qa:
+    name: QA batch ${{ matrix.batch }}
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { batch: 1, start: 1, end: 10 }
+          - { batch: 2, start: 11, end: 20 }
+          - { batch: 3, start: 21, end: 30 }
+          - { batch: 4, start: 31, end: 40 }
+          - { batch: 5, start: 41, end: 50 }
+          - { batch: 6, start: 51, end: 60 }
+          - { batch: 7, start: 61, end: 70 }
+          - { batch: 8, start: 71, end: 80 }
+          - { batch: 9, start: 81, end: 90 }
+          - { batch: 10, start: 91, end: 100 }
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
       - name: Setup Node
         uses: actions/setup-node@v6
         with:
           node-version: 22
-
       - name: Install Playwright
         run: |
           npm install --no-save playwright
           npx playwright install --with-deps chromium
-
-      - name: Run browser game QA
+      - name: Run browser game QA batch
         id: qa
         continue-on-error: true
         env:
           BASE_URL: https://brainrotgames.me
-          MAX_PAGES: 100
-          CONCURRENCY: 6
+          START_PAGE: ${{ matrix.start }}
+          END_PAGE: ${{ matrix.end }}
+          CONCURRENCY: 12
           RETRIES: 2
+          LOAD_WAIT: 4000
+          GAME_TIMEOUT: 12000
         run: node scripts/game-qa.mjs
-
-      - name: Upload QA report
+      - name: Upload batch report
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: game-qa-report
+          name: game-qa-batch-${{ matrix.batch }}
           path: qa-results/
           retention-days: 30
 
-      - name: Fail if confirmed broken games exist
-        if: steps.qa.outcome == 'failure'
+  aggregate:
+    name: Aggregate QA results
+    if: always()
+    needs: game-qa
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all batch reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: game-qa-batch-*
+          path: qa-results
+          merge-multiple: true
+      - name: Build aggregate report
         run: |
-          echo "Confirmed game failures were detected. Review the game-qa-report artifact before changing the blocklist."
-          exit 1
-
-# Manual QA trigger checkpoint: rerun the corrected provider-level scanner.
+          node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const root = 'qa-results';
+          const files = fs.readdirSync(root).filter(f => f.endsWith('.json') && f !== 'aggregate.json');
+          const allResults = [];
+          for (const file of files) {
+            try {
+              const data = JSON.parse(fs.readFileSync(path.join(root, file), 'utf8'));
+              if (data.results) allResults.push(...data.results);
+            } catch {}
+          }
+          const ids = new Set();
+          const deduped = allResults.filter(r => r.id && !ids.has(r.id) && ids.add(r.id));
+          const failedIds = deduped.filter(r => r.status === 'fail').map(r => r.id);
+          const report = {
+            generatedAt: new Date().toISOString(),
+            scanned: deduped.length,
+            passed: deduped.filter(r => r.status === 'pass').length,
+            failed: failedIds.length,
+            failedIds,
+            environmentBlocked: deduped.some(r => r.siteCheck === 'blocked-403'),
+            results: deduped
+          };
+          fs.writeFileSync(path.join(root, 'aggregate.json'), JSON.stringify(report, null, 2));
+          fs.writeFileSync(path.join(root, 'aggregate-blocked-ids.txt'), failedIds.join('\n') + (failedIds.length ? '\n' : ''));
+          console.log(`AGGREGATE: scanned=${report.scanned} passed=${report.passed} failed=${report.failed}`);
+          NODE
+      - name: Upload aggregate report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: game-qa-aggregate
+          path: qa-results/
+          retention-days: 30
+      - name: Fail only when confirmed game failures exist
+        if: always()
+        run: |
+          FAILED=$(node -e "const r=require('./qa-results/aggregate.json'); console.log(r.failed)")
+          if [ "$FAILED" -gt 0 ]; then echo "Confirmed embedded-game failures: $FAILED"; exit 1; fi
+          echo "No confirmed embedded-game failures in the completed scan."

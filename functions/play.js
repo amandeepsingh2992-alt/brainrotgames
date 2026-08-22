@@ -2,6 +2,7 @@ export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
   const gameId = requestUrl.searchParams.get("id");
   const requestedTitle = requestUrl.searchParams.get("title") || "";
+  const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
   const assetUrl = new URL(requestUrl);
   assetUrl.pathname = "/play.html";
@@ -33,7 +34,7 @@ export async function onRequestGet(context) {
     return new Response("Game not found", { status: 404, headers: { "content-type": "text/plain; charset=utf-8", "cache-control": "no-store" } });
   }
 
-  if (!gameId) return notFound();
+  if (!gameId || BLOCKED_GAME_IDS.has(String(gameId))) return notFound();
 
   let gameTitle = requestedTitle ? requestedTitle.replace(/-/g, " ").replace(/\b\w/g, (char) => char.toUpperCase()) : "Game";
   let gameDescription = "";
@@ -61,7 +62,6 @@ export async function onRequestGet(context) {
   if (gameDescription) seoDescription = `Play ${gameTitle} online for free on BrainrotGames. ${gameDescription}`;
   seoDescription = cleanText(seoDescription).slice(0, 160);
 
-  // Game ID is the stable resource identity. The optional title parameter is only a friendly display hint.
   const canonicalUrl = new URL("/play", requestUrl.origin);
   canonicalUrl.searchParams.set("id", gameId);
   html = html.replace(/(<link\s+rel=["']canonical["'][^>]*\bid=["']canonical-url["'][^>]*\bhref=["'])[^"']*(["'])/i, `$1${escapeHtml(canonicalUrl.toString())}$2`);
@@ -101,7 +101,6 @@ export async function onRequestGet(context) {
   html = injectJsonLd(html, "game-schema-server", videoGameSchema);
   html = injectJsonLd(html, "breadcrumb-schema-server", breadcrumbSchema);
 
-  /* Server-render related game links so crawlers can discover more game pages from every game page. */
   try {
     const relatedUrl = new URL("/api/games", requestUrl.origin);
     relatedUrl.searchParams.set("category", gameCategory);

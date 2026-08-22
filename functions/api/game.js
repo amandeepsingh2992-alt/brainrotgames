@@ -1,5 +1,6 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const CACHE_TTL = 900;
+const GAMEPIX_SID = "E158N";
 // Confirmed broken by live-site QA/user reports. Keep this list conservative.
 const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
@@ -22,14 +23,27 @@ function extractItems(data) {
 function isSafeGameUrl(value) {
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && (url.hostname === "games.gamepix.com" || url.hostname.endsWith(".gamepix.com"));
+    return url.protocol === "https:" && (url.hostname === "play.gamepix.com" || url.hostname === "games.gamepix.com");
   } catch {
     return false;
   }
 }
+function buildEmbedUrl(game) {
+  const namespace = String(game.namespace || "").trim();
+  const sourceUrl = String(game.url || game.game_url || "").trim();
+  if (!namespace) return sourceUrl;
+
+  let sid = GAMEPIX_SID;
+  try {
+    const parsed = new URL(sourceUrl);
+    sid = parsed.searchParams.get("sid") || GAMEPIX_SID;
+  } catch {}
+
+  return `https://play.gamepix.com/${encodeURIComponent(namespace)}/embed?sid=${encodeURIComponent(sid)}`;
+}
 async function isUnavailableGame(game) {
   const id = String(game.id ?? game.namespace ?? "");
-  const gameUrl = String(game.url || "").trim();
+  const gameUrl = String(game.url || game.game_url || "").trim();
   if (!id || BLOCKED_GAME_IDS.has(id) || !isSafeGameUrl(gameUrl)) return true;
   try {
     const response = await fetch(gameUrl, {
@@ -75,14 +89,17 @@ export async function onRequestGet(context) {
   try {
     let game = await findInPages(1, 5, id);
     if (!game) game = await findInPages(6, 10, id);
-    if (!game || await isUnavailableGame(game)) return json({ error: "Game not found or unavailable" }, 404, 60);
+    if (!game || !isSafeGameUrl(String(game.url || game.game_url || "").trim()) || await isUnavailableGame({ ...game, url: buildEmbedUrl(game) })) {
+      return json({ error: "Game not found or unavailable" }, 404, 60);
+    }
     const result = json({
       id: game.id ?? game.namespace ?? "",
+      namespace: game.namespace ?? "",
       title: game.title ?? "Untitled game",
       category: game.category ?? "Other",
       description: game.description ?? "",
       image: game.banner_image || game.image || game.thumbnailUrl || game.thumbnailUrl100 || "",
-      url: game.url || "",
+      url: buildEmbedUrl(game),
       width: game.width,
       height: game.height
     });

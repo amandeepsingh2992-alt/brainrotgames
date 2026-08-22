@@ -82,7 +82,7 @@ export async function onRequestGet(context) {
   const id = url.searchParams.get("id");
   if (!id) return json({ error: "Missing id" }, 400, 30);
   if (BLOCKED_GAME_IDS.has(String(id))) return json({ error: "Game not found or unavailable" }, 404, 60);
-  const cacheKey = new Request(url.toString(), { method: "GET" });
+  const cacheKey = new Request(`${url.toString()}&cache=embed-v2`, { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
   if (cached) return cached;

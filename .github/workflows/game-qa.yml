@@ -1,128 +1,58 @@
-name: Game Catalogue QA
+name: Game Catalogue Health Monitor
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "17 3 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "scripts/provider-health.mjs"
+      - "functions/api/games.js"
+      - "functions/api/game.js"
 
 permissions:
-  contents: read
+  contents: write
+
+concurrency:
+  group: game-catalogue-health
+  cancel-in-progress: true
 
 jobs:
-  game-qa:
-    name: QA batch ${{ matrix.batch }}
+  provider-health:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { batch: 1, start: 1, end: 10 }
-          - { batch: 2, start: 11, end: 20 }
-          - { batch: 3, start: 21, end: 30 }
-          - { batch: 4, start: 31, end: 40 }
-          - { batch: 5, start: 41, end: 50 }
-          - { batch: 6, start: 51, end: 60 }
-          - { batch: 7, start: 61, end: 70 }
-          - { batch: 8, start: 71, end: 80 }
-          - { batch: 9, start: 81, end: 90 }
-          - { batch: 10, start: 91, end: 100 }
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Setup Node
-        uses: actions/setup-node@v6
         with:
-          node-version: 22
-      - name: Install Playwright
-        run: |
-          npm install --no-save playwright
-          npx playwright install --with-deps chromium
-      - name: Run browser game QA batch
-        id: qa
-        continue-on-error: true
+          fetch-depth: 2
+
+      - name: Run complete GamePix provider health scan
+        run: node scripts/provider-health.mjs
         env:
-          BASE_URL: https://brainrotgames.me
-          START_PAGE: ${{ matrix.start }}
-          END_PAGE: ${{ matrix.end }}
-          OUTPUT_PREFIX: batch-${{ matrix.batch }}
-          CONCURRENCY: 12
-          RETRIES: 2
-          LOAD_WAIT: 4000
-          GAME_TIMEOUT: 12000
-        run: node scripts/game-qa.mjs
-      - name: Upload batch report
+          MAX_PAGES: 100
+          CONCURRENCY: 25
+          TIMEOUT_MS: 6000
+          MIN_SCANNED: 1000
+
+      - name: Upload health report
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: game-qa-batch-${{ matrix.batch }}
-          path: qa-results/
+          name: game-catalogue-health
+          path: qa-results/provider-health.json
           retention-days: 30
 
-  aggregate:
-    name: Aggregate QA results
-    if: always()
-    needs: game-qa
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download all batch reports
-        uses: actions/download-artifact@v4
-        with:
-          pattern: game-qa-batch-*
-          path: qa-results
-          merge-multiple: false
-      - name: Build aggregate report
+      - name: Commit only definite quarantines
         run: |
-          node <<'NODE'
-          const fs = require('fs');
-          const path = require('path');
-          const root = 'qa-results';
-          const jsonFiles = [];
-          function walk(dir) {
-            if (!fs.existsSync(dir)) return;
-            for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-              const full = path.join(dir, entry.name);
-              if (entry.isDirectory()) walk(full);
-              else if (entry.name.endsWith('.json')) jsonFiles.push(full);
-            }
-          }
-          walk(root);
-          const allResults = [];
-          for (const file of jsonFiles) {
-            try {
-              const data = JSON.parse(fs.readFileSync(file, 'utf8'));
-              if (Array.isArray(data.results)) allResults.push(...data.results);
-            } catch (e) { console.log(`Skipping invalid JSON: ${file}`); }
-          }
-          const ids = new Set();
-          const deduped = allResults.filter(r => r.id && !ids.has(r.id) && ids.add(r.id));
-          const failed = deduped.filter(r => r.status === 'fail');
-          const passed = deduped.filter(r => r.status === 'pass');
-          const report = {
-            generatedAt: new Date().toISOString(),
-            scanned: deduped.length,
-            passed: passed.length,
-            failed: failed.length,
-            failedIds: failed.map(r => r.id),
-            environmentBlocked: deduped.some(r => r.siteCheck === 'blocked-403'),
-            complete: deduped.length >= 1200,
-            results: deduped
-          };
-          fs.mkdirSync(root, { recursive: true });
-          fs.writeFileSync(path.join(root, 'aggregate.json'), JSON.stringify(report, null, 2));
-          fs.writeFileSync(path.join(root, 'aggregate-blocked-ids.txt'), failed.map(r => r.id).join('\n') + (failed.length ? '\n' : ''));
-          console.log(`AGGREGATE: scanned=${report.scanned} passed=${report.passed} failed=${report.failed} complete=${report.complete}`);
-          NODE
-      - name: Upload aggregate report
-        if: always()
-        uses: actions/upload-artifact@v5
-        with:
-          name: game-qa-aggregate
-          path: qa-results/aggregate*
-          retention-days: 30
-      - name: Fail only after a complete scan with confirmed failures
-        if: always()
-        run: |
-          node -e "const r=require('./qa-results/aggregate.json'); if(!r.complete){console.log('INCOMPLETE SCAN - no catalogue changes allowed'); process.exit(1)} if(r.failed>0){console.log('CONFIRMED FAILURES:',r.failed); process.exit(2)} console.log('COMPLETE SCAN: no confirmed failures')"
+          if git diff --quiet -- functions/api/games.js functions/api/game.js; then
+            echo "No catalogue quarantine changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add functions/api/games.js functions/api/game.js
+          git commit -m "Auto-quarantine unavailable games"
+          git push

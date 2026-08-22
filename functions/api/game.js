@@ -1,7 +1,8 @@
-const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
+import { GAMEPIX_FEED_BASE, GAMEPIX_SID, buildEmbedUrl, normalizeGame, slug } from "../lib/gamepix.js";
+
 const CACHE_TTL = 900;
-const GAMEPIX_SID = "E158N";
-// Confirmed broken by live-site QA/user reports. Keep this list conservative.
+const MAX_FEED_PAGES = 100;
+const BATCH = 10;
 const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
@@ -18,28 +19,15 @@ function extractItems(data) {
     : Array.isArray(data?.games) ? data.games
     : Array.isArray(data?.results) ? data.results
     : Array.isArray(data?.data) ? data.data
-    : [];
+    : Array.isArray(data) ? data : [];
 }
 function isSafeGameUrl(value) {
   try {
-    const url = new URL(value);
-    return url.protocol === "https:" && (url.hostname === "play.gamepix.com" || url.hostname === "games.gamepix.com");
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" && (parsed.hostname === "play.gamepix.com" || parsed.hostname === "games.gamepix.com");
   } catch {
     return false;
   }
-}
-function buildEmbedUrl(game) {
-  const namespace = String(game.namespace || "").trim();
-  const sourceUrl = String(game.url || game.game_url || "").trim();
-  if (!namespace) return sourceUrl;
-
-  let sid = GAMEPIX_SID;
-  try {
-    const parsed = new URL(sourceUrl);
-    sid = parsed.searchParams.get("sid") || GAMEPIX_SID;
-  } catch {}
-
-  return `https://play.gamepix.com/${encodeURIComponent(namespace)}/embed?sid=${encodeURIComponent(sid)}`;
 }
 async function isUnavailableGame(game) {
   const id = String(game.id ?? game.namespace ?? "");
@@ -63,45 +51,71 @@ async function isUnavailableGame(game) {
     return false;
   }
 }
-async function findInPages(start, end, id) {
-  const responses = await Promise.all(
-    Array.from({ length: end - start + 1 }, (_, i) => fetch(FEED + (start + i), {
+async function fetchPage(page) {
+  try {
+    const feedUrl = new URL(GAMEPIX_FEED_BASE);
+    feedUrl.searchParams.set("sid", GAMEPIX_SID);
+    feedUrl.searchParams.set("pagination", "12");
+    feedUrl.searchParams.set("page", String(page));
+    const response = await fetch(feedUrl.toString(), {
       headers: { Accept: "application/json" },
       cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
-    }).catch(() => null))
-  );
-  for (const response of responses) {
-    if (!response?.ok) continue;
-    const game = extractItems(await response.json()).find(g => String(g.id ?? g.namespace ?? "") === String(id));
-    if (game) return game;
+    });
+    if (!response.ok) return [];
+    return extractItems(await response.json());
+  } catch {
+    return [];
+  }
+}
+async function findGame(id, requestedTitle = "") {
+  const targetId = String(id).trim();
+  const targetTitle = slug(requestedTitle);
+  for (let start = 1; start <= MAX_FEED_PAGES; start += BATCH) {
+    const pages = Array.from({ length: Math.min(BATCH, MAX_FEED_PAGES - start + 1) }, (_, i) => start + i);
+    const results = await Promise.all(pages.map(fetchPage));
+    for (const games of results) {
+      const exactId = games.find(game => String(game?.id ?? "") === targetId);
+      if (exactId) return exactId;
+    }
+    // ID is authoritative. Title is only a diagnostic fallback if an upstream
+    // record is temporarily missing its ID field.
+    if (targetTitle) {
+      for (const games of results) {
+        const titleMatch = games.find(game => slug(game?.title || "") === targetTitle);
+        if (titleMatch && String(titleMatch.id ?? "") === targetId) return titleMatch;
+      }
+    }
   }
   return null;
 }
+
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const id = url.searchParams.get("id");
+  const requestedTitle = url.searchParams.get("title") || "";
   if (!id) return json({ error: "Missing id" }, 400, 30);
   if (BLOCKED_GAME_IDS.has(String(id))) return json({ error: "Game not found or unavailable" }, 404, 60);
-  const cacheKey = new Request(`${url.toString()}&cache=embed-v2`, { method: "GET" });
+
+  const cacheKey = new Request(`${url.toString()}&cache=canonical-id-v3`, { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
+
   try {
-    let game = await findInPages(1, 5, id);
-    if (!game) game = await findInPages(6, 10, id);
-    if (!game || !isSafeGameUrl(String(game.url || game.game_url || "").trim()) || await isUnavailableGame({ ...game, url: buildEmbedUrl(game) })) {
-      return json({ error: "Game not found or unavailable" }, 404, 60);
-    }
+    const sourceGame = await findGame(id, requestedTitle);
+    if (!sourceGame) return json({ error: "Game not found or unavailable" }, 404, 60);
+
+    const game = normalizeGame(sourceGame);
+    if (await isUnavailableGame(game)) return json({ error: "Game not found or unavailable" }, 404, 60);
+
     const result = json({
-      id: game.id ?? game.namespace ?? "",
-      namespace: game.namespace ?? "",
-      title: game.title ?? "Untitled game",
-      category: game.category ?? "Other",
-      description: game.description ?? "",
-      image: game.banner_image || game.image || game.thumbnailUrl || game.thumbnailUrl100 || "",
-      url: buildEmbedUrl(game),
-      width: game.width,
-      height: game.height
+      ...game,
+      // These are authoritative values from GamePix; the incoming title query
+      // is never used to construct the provider embed URL.
+      id: sourceGame.id ?? sourceGame.namespace ?? "",
+      namespace: sourceGame.namespace ?? "",
+      title: sourceGame.title ?? "Untitled game",
+      url: buildEmbedUrl(sourceGame)
     });
     context.waitUntil(cache.put(cacheKey, result.clone()));
     return result;

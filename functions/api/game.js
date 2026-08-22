@@ -1,6 +1,7 @@
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const CACHE_TTL = 900;
-const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI"]);
+// Confirmed broken by live-site QA/user reports. Keep this list conservative.
+const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
   return new Response(JSON.stringify(data), {
@@ -66,6 +67,7 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const id = url.searchParams.get("id");
   if (!id) return json({ error: "Missing id" }, 400, 30);
+  if (BLOCKED_GAME_IDS.has(String(id))) return json({ error: "Game not found or unavailable" }, 404, 60);
   const cacheKey = new Request(url.toString(), { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);

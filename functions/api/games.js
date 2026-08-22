@@ -69,7 +69,7 @@ export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
   const category = url.searchParams.get("category") || "All";
-  const cacheKey = new Request(url.toString(), { method: "GET" });
+  const cacheKey = new Request(`${url.toString()}&cache=embed-v2`, { method: "GET" });
   const cache = caches.default;
 
   const cached = await cache.match(cacheKey);

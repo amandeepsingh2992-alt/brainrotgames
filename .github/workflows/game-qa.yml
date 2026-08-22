@@ -10,6 +10,7 @@ on:
       - "scripts/provider-health.mjs"
       - "functions/api/games.js"
       - "functions/api/game.js"
+      - ".github/workflows/game-qa.yml"
 
 permissions:
   contents: write

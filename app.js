@@ -17,6 +17,7 @@ function slug(value = "") {
 function normalizeGame(g = {}) {
   return {
     id: g.id ?? g.namespace ?? Math.random().toString(36).slice(2),
+    namespace: g.namespace ?? "",
     title: g.title ?? "Untitled game",
     description: g.description ?? "",
     category: g.category ?? "Other",
@@ -25,6 +26,11 @@ function normalizeGame(g = {}) {
     width: g.width,
     height: g.height
   };
+}
+function buildPlayUrl(game) {
+  const id = String(game.id ?? game.namespace ?? "").trim();
+  const titleSlug = slug(game.title || game.namespace || "game");
+  return `/play?id=${encodeURIComponent(id)}&title=${encodeURIComponent(titleSlug)}`;
 }
 async function fetchGames(page = 1, category = "All") {
   const params = new URLSearchParams({ page: String(page), category });
@@ -59,7 +65,7 @@ function render() {
     return;
   }
   grid.innerHTML = games.map((game, index) => {
-    const gameUrl = `/play?id=${encodeURIComponent(game.id)}&title=${encodeURIComponent(slug(game.title))}`;
+    const gameUrl = buildPlayUrl(game);
     const dimensions = game.width && game.height ? ` width="${Number(game.width)}" height="${Number(game.height)}"` : "";
     const loading = index < 2 ? "eager" : "lazy";
     const priority = index === 0 ? " fetchpriority=\"low\"" : "";

@@ -1,6 +1,6 @@
-const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
+import { GAMEPIX_FEED_BASE, normalizeGamePixCategory, normalizeGame, slug } from "../lib/gamepix.js";
+
 const CACHE_TTL = 900;
-const GAMEPIX_SID = "E158N";
 const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
@@ -22,20 +22,6 @@ function isSafeGameUrl(value) {
   }
 }
 
-function buildEmbedUrl(game) {
-  const namespace = String(game.namespace || "").trim();
-  const sourceUrl = String(game.url || game.game_url || "").trim();
-  if (!namespace) return sourceUrl;
-
-  let sid = GAMEPIX_SID;
-  try {
-    const parsed = new URL(sourceUrl);
-    sid = parsed.searchParams.get("sid") || GAMEPIX_SID;
-  } catch {}
-
-  return `https://play.gamepix.com/${encodeURIComponent(namespace)}/embed?sid=${encodeURIComponent(sid)}`;
-}
-
 async function isUnavailableGame(game) {
   const id = String(game.id ?? game.namespace ?? "");
   const gameUrl = String(game.url || game.game_url || "").trim();
@@ -49,18 +35,13 @@ async function isUnavailableGame(game) {
       signal: AbortSignal.timeout(4000),
       cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
     });
-
     if (response.status === 404 || response.status === 410) return true;
-
     const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
     if (xFrame === "deny" || xFrame === "sameorigin") return true;
-
     const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
     if (/frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp)) return true;
-
     return false;
   } catch {
-    // Network/timeouts can be transient. Keep the game rather than falsely deleting it.
     return false;
   }
 }
@@ -68,22 +49,24 @@ async function isUnavailableGame(game) {
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const page = Math.max(1, Number(url.searchParams.get("page")) || 1);
-  const category = url.searchParams.get("category") || "All";
-  const cacheKey = new Request(`${url.toString()}&cache=embed-v2`, { method: "GET" });
+  const requestedCategory = url.searchParams.get("category") || "All";
+  const category = normalizeGamePixCategory(requestedCategory);
+  const cacheKey = new Request(`${url.toString()}&category-v2=${encodeURIComponent(category)}`, { method: "GET" });
   const cache = caches.default;
-
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
 
-  const upstream = new URL(FEED + page);
-  if (category !== "All") upstream.searchParams.set("category", category);
+  const upstream = new URL(GAMEPIX_FEED_BASE);
+  upstream.searchParams.set("sid", "E158N");
+  upstream.searchParams.set("pagination", "12");
+  upstream.searchParams.set("page", String(page));
+  if (category) upstream.searchParams.set("category", category);
 
   try {
     const response = await fetch(upstream.toString(), {
       headers: { Accept: "application/json" },
       cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
     });
-
     if (!response.ok) return json({ error: "GamePix feed unavailable", status: response.status }, 502, 30);
 
     const data = await response.json();
@@ -93,31 +76,25 @@ export async function onRequestGet(context) {
       : Array.isArray(data.results) ? data.results
       : Array.isArray(data) ? data : [];
 
-    const rawItems = sourceGames.map((g) => ({
-      id: g.id ?? g.namespace ?? "",
-      namespace: g.namespace ?? "",
-      title: g.title ?? "Untitled game",
-      description: g.description ?? "",
-      category: g.category ?? "Other",
-      image: g.banner_image || g.image || g.thumbnailUrl || g.thumbnailUrl100 || g.thumbnail_url || "",
-      url: buildEmbedUrl(g),
-      width: g.width,
-      height: g.height
-    }));
+    const rawItems = sourceGames
+      .filter(g => !BLOCKED_GAME_IDS.has(String(g.id ?? g.namespace ?? "")))
+      .map(normalizeGame);
 
-    // Remove only games we can positively identify as unavailable or unsafe.
-    const availability = await Promise.all(rawItems.map(async (game) => ({ game, unavailable: await isUnavailableGame(game) })));
+    const availability = await Promise.all(rawItems.map(async game => ({
+      game,
+      unavailable: await isUnavailableGame(game)
+    })));
     const items = availability.filter(({ unavailable }) => !unavailable).map(({ game }) => game);
 
     const responseOut = json({
       items,
-      next_page_url: data.next_page_url || null,
+      next_page_url: data.next_page_url || data.next_url || null,
       next_url: data.next_url || null,
       page,
-      category,
+      category: category || "All",
+      category_slug: category || "",
       total: items.length
     });
-
     context.waitUntil(cache.put(cacheKey, responseOut.clone()));
     return responseOut;
   } catch (error) {

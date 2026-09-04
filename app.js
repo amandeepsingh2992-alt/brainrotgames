@@ -1,4 +1,4 @@
-const state = { page: 1, category: "All", search: "", games: [], loading: false, hasMore: true };
+const state = { page: 1, category: "All", search: "", games: [], loading: false, hasMore: true, searchRun: 0 };
 const $ = id => document.getElementById(id);
 const grid = $("game-grid");
 const statusEl = $("status");
@@ -37,6 +37,19 @@ async function fetchGames(page = 1, category = "All") {
   const res = await fetch(`/api/games?${params.toString()}`, { headers: { Accept: "application/json" }, cache: "force-cache" });
   if (!res.ok) throw new Error(`Feed request failed (${res.status})`);
   return res.json();
+}
+
+function appendGames(data) {
+  const incoming = Array.isArray(data.items) ? data.items.map(normalizeGame) : [];
+  const seen = new Set(state.games.map(game => String(game.id)));
+  for (const game of incoming) {
+    const id = String(game.id);
+    if (!seen.has(id)) {
+      state.games.push(game);
+      seen.add(id);
+    }
+  }
+  return incoming.length;
 }
 
 function renderCategories() {
@@ -79,13 +92,8 @@ async function load() {
   statusEl.textContent = state.page === 1 ? "Loading games…" : "Loading more…";
   try {
     const data = await fetchGames(state.page, state.category);
-    const incoming = Array.isArray(data.items) ? data.items.map(normalizeGame) : [];
-    const seen = new Set(state.games.map(game => String(game.id)));
-    for (const game of incoming) {
-      const id = String(game.id);
-      if (!seen.has(id)) { state.games.push(game); seen.add(id); }
-    }
-    state.hasMore = Boolean(data.next_page_url || data.next_url || incoming.length >= 12);
+    const incomingLength = appendGames(data);
+    state.hasMore = Boolean(data.next_page_url || data.next_url || incomingLength >= 12);
     if (state.page === 1) renderCategories();
     render();
     statusEl.textContent = state.games.length === 1 ? "1 game available" : `${state.games.length} games loaded`;
@@ -99,17 +107,64 @@ async function load() {
   }
 }
 
+// Search previously filtered only the first 12 games loaded on the page.
+// When a user searches, progressively load the remaining pages so the search
+// covers the full GamePix library instead of appearing to return false negatives.
+async function searchAllGames(runId) {
+  if (!state.search.trim() || state.hasMore === false) return;
+
+  let nextPage = state.page + 1;
+  let keepSearching = true;
+
+  while (keepSearching && runId === state.searchRun && state.search.trim()) {
+    try {
+      statusEl.textContent = `Searching… ${state.games.length} games checked`;
+      const data = await fetchGames(nextPage, state.category);
+      const incomingLength = appendGames(data);
+      state.page = nextPage;
+      state.hasMore = Boolean(data.next_page_url || data.next_url || incomingLength >= 12);
+      render();
+
+      const matches = filteredGames().length;
+      if (matches > 0) {
+        statusEl.textContent = matches === 1 ? "1 game found" : `${matches} games found`;
+      }
+
+      keepSearching = state.hasMore && incomingLength > 0;
+      nextPage += 1;
+    } catch (err) {
+      console.error("Search feed error:", err);
+      keepSearching = false;
+    }
+  }
+
+  if (runId === state.searchRun && state.search.trim()) {
+    const matches = filteredGames().length;
+    statusEl.textContent = matches === 1 ? "1 game found" : `${matches} games found`;
+    loadMore.style.display = state.hasMore ? "" : "none";
+  }
+}
+
 let searchTimer;
 if (searchEl) {
   searchEl.addEventListener("input", event => {
     state.search = event.target.value;
+    state.searchRun += 1;
+    const runId = state.searchRun;
     clearTimeout(searchTimer);
-    searchTimer = setTimeout(render, 80);
+    searchTimer = setTimeout(async () => {
+      render();
+      if (state.search.trim()) {
+        await searchAllGames(runId);
+      } else {
+        statusEl.textContent = state.games.length === 1 ? "1 game available" : `${state.games.length} games loaded`;
+      }
+    }, 80);
   }, { passive: true });
 }
 if (clearFilter) {
   clearFilter.addEventListener("click", () => {
-    state.category = "All"; state.page = 1; state.games = []; state.hasMore = true;
+    state.category = "All"; state.page = 1; state.games = []; state.hasMore = true; state.searchRun += 1;
     clearFilter.hidden = true; titleEl.textContent = "Popular Browser Games"; grid.innerHTML = ""; statusEl.textContent = "Loading games…"; load();
   });
 }

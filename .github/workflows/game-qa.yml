@@ -8,8 +8,16 @@ on:
     branches: [main]
     paths:
       - "scripts/provider-health.mjs"
+      - "scripts/game-qa.mjs"
       - "functions/api/games.js"
       - "functions/api/game.js"
+      - "functions/games/**"
+      - "functions/guides/**"
+      - "functions/play.js"
+      - "functions/sitemap.xml.js"
+      - "index.html"
+      - "app.js"
+      - "_routes.json"
       - ".github/workflows/game-qa.yml"
 
 permissions:

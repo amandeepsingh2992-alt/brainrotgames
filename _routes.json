@@ -5,6 +5,7 @@
     "/play",
     "/games",
     "/games/*",
+    "/guides/*",
     "/sitemap.xml"
   ],
   "exclude": []

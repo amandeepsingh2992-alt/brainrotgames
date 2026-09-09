@@ -53,8 +53,6 @@ function appendGames(data) {
 }
 
 function renderCategories() {
-  // Keep the complete category directory server-rendered in index.html.
-  // Only update its active state; never replace the full category list.
   if (!categoryRow) return;
   categoryRow.querySelectorAll("a.category").forEach(link => {
     const isAll = link.getAttribute("href") === "/#games" || link.textContent.trim() === "All Games";
@@ -107,15 +105,11 @@ async function load() {
   }
 }
 
-// Search previously filtered only the first 12 games loaded on the page.
-// When a user searches, progressively load the remaining pages so the search
-// covers the full GamePix library instead of appearing to return false negatives.
 async function searchAllGames(runId) {
   if (!state.search.trim() || state.hasMore === false) return;
-
+  while (state.loading && runId === state.searchRun) await new Promise(resolve => setTimeout(resolve, 50));
   let nextPage = state.page + 1;
   let keepSearching = true;
-
   while (keepSearching && runId === state.searchRun && state.search.trim()) {
     try {
       statusEl.textContent = `Searching… ${state.games.length} games checked`;
@@ -124,12 +118,8 @@ async function searchAllGames(runId) {
       state.page = nextPage;
       state.hasMore = Boolean(data.next_page_url || data.next_url || incomingLength >= 12);
       render();
-
       const matches = filteredGames().length;
-      if (matches > 0) {
-        statusEl.textContent = matches === 1 ? "1 game found" : `${matches} games found`;
-      }
-
+      if (matches > 0) statusEl.textContent = matches === 1 ? "1 game found" : `${matches} games found`;
       keepSearching = state.hasMore && incomingLength > 0;
       nextPage += 1;
     } catch (err) {
@@ -137,7 +127,6 @@ async function searchAllGames(runId) {
       keepSearching = false;
     }
   }
-
   if (runId === state.searchRun && state.search.trim()) {
     const matches = filteredGames().length;
     statusEl.textContent = matches === 1 ? "1 game found" : `${matches} games found`;
@@ -154,11 +143,8 @@ if (searchEl) {
     clearTimeout(searchTimer);
     searchTimer = setTimeout(async () => {
       render();
-      if (state.search.trim()) {
-        await searchAllGames(runId);
-      } else {
-        statusEl.textContent = state.games.length === 1 ? "1 game available" : `${state.games.length} games loaded`;
-      }
+      if (state.search.trim()) await searchAllGames(runId);
+      else statusEl.textContent = state.games.length === 1 ? "1 game available" : `${state.games.length} games loaded`;
     }, 80);
   }, { passive: true });
 }
@@ -174,5 +160,22 @@ if (loadMore) {
     state.page += 1;
     load();
   });
+}
+
+// Make the original editorial section visible from the main navigation and add a compact homepage entry point.
+const mainNav = document.querySelector('.site-header nav');
+if (mainNav && !mainNav.querySelector('a[href="/guides/"]')) {
+  const link = document.createElement('a');
+  link.href = '/guides/';
+  link.textContent = 'Guides';
+  mainNav.appendChild(link);
+}
+const discoverySection = document.querySelector('.discovery-section');
+if (discoverySection && !document.getElementById('editorial-guides-home')) {
+  const section = document.createElement('section');
+  section.id = 'editorial-guides-home';
+  section.className = 'container section';
+  section.innerHTML = `<div class="section-head"><div><p class="eyebrow">ORIGINAL GUIDES</p><h2>Gaming Advice From BrainrotGames</h2></div><a class="ghost-btn" href="/guides/">View all guides</a></div><p class="section-intro">Practical advice for choosing games, improving browser performance, playing on mobile and getting better at popular genres.</p><div class="discovery-grid"><a class="discovery-card" href="/guides/choose-browser-game"><span class="discovery-icon">🎯</span><div><strong>Choose the Right Game</strong><span>Match games to your time, device and play style</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="/guides/browser-game-performance"><span class="discovery-icon">⚡</span><div><strong>Improve Performance</strong><span>Troubleshoot loading, lag and browser issues</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="/guides/how-we-select-games"><span class="discovery-icon">🔎</span><div><strong>How We Select Games</strong><span>See how the catalogue and editorial content work</span></div><span class="discovery-arrow">→</span></a></div>`;
+  discoverySection.insertAdjacentElement('afterend', section);
 }
 load();

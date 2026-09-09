@@ -162,20 +162,4 @@ if (loadMore) {
   });
 }
 
-// Make the original editorial section visible from the main navigation and add a compact homepage entry point.
-const mainNav = document.querySelector('.site-header nav');
-if (mainNav && !mainNav.querySelector('a[href="/guides/"]')) {
-  const link = document.createElement('a');
-  link.href = '/guides/';
-  link.textContent = 'Guides';
-  mainNav.appendChild(link);
-}
-const discoverySection = document.querySelector('.discovery-section');
-if (discoverySection && !document.getElementById('editorial-guides-home')) {
-  const section = document.createElement('section');
-  section.id = 'editorial-guides-home';
-  section.className = 'container section';
-  section.innerHTML = `<div class="section-head"><div><p class="eyebrow">ORIGINAL GUIDES</p><h2>Gaming Advice From BrainrotGames</h2></div><a class="ghost-btn" href="/guides/">View all guides</a></div><p class="section-intro">Practical advice for choosing games, improving browser performance, playing on mobile and getting better at popular genres.</p><div class="discovery-grid"><a class="discovery-card" href="/guides/choose-browser-game"><span class="discovery-icon">🎯</span><div><strong>Choose the Right Game</strong><span>Match games to your time, device and play style</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="/guides/browser-game-performance"><span class="discovery-icon">⚡</span><div><strong>Improve Performance</strong><span>Troubleshoot loading, lag and browser issues</span></div><span class="discovery-arrow">→</span></a><a class="discovery-card" href="/guides/how-we-select-games"><span class="discovery-icon">🔎</span><div><strong>How We Select Games</strong><span>See how the catalogue and editorial content work</span></div><span class="discovery-arrow">→</span></a></div>`;
-  discoverySection.insertAdjacentElement('afterend', section);
-}
 load();

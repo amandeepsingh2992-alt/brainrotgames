@@ -9,6 +9,7 @@ on:
     paths:
       - "scripts/provider-health.mjs"
       - "scripts/game-qa.mjs"
+      - "scripts/site-structure-qa.mjs"
       - "functions/api/games.js"
       - "functions/api/game.js"
       - "functions/games/**"
@@ -37,6 +38,9 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
+
+      - name: Run static site structure QA
+        run: node scripts/site-structure-qa.mjs
 
       - name: Run complete GamePix provider health scan
         run: node scripts/provider-health.mjs

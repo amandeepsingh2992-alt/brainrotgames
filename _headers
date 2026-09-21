@@ -5,3 +5,11 @@
 /games/
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
   Pragma: no-cache
+
+# Keep the Cloudflare Pages project hostname out of search results.
+https://:project.pages.dev/*
+  X-Robots-Tag: noindex
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin

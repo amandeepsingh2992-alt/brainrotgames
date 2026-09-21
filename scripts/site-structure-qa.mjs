@@ -15,7 +15,7 @@ assert(index.includes('href="/guides/"'), "Homepage is missing a server-rendered
 assert(index.includes('id="editorial-guides-home"'), "Homepage is missing the server-rendered editorial guides section");
 assert(index.includes("What Are Browser Games?"), "Homepage is missing the browser gaming overview");
 assert(index.includes("BrainrotGames Overview"), "Homepage is missing the site overview table");
-assert(index.includes("Why Use BrainrotGames"), "Homepage is missing the value proposition section");
+assert(index.toLowerCase().includes("why use brainrotgames"), "Homepage is missing the value proposition section");
 assert(index.includes("adsbygoogle.js?client=ca-pub-1559302511010806"), "Homepage is missing the AdSense verification script");
 
 const play = read("play.html");

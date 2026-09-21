@@ -88,7 +88,7 @@
     <section class="container section"><div class="content-panel faq-panel"><p class="eyebrow">FAQ</p><h2>Frequently Asked Questions</h2><div class="faq-list"><details><summary>Are the games free to play?</summary><p>BrainrotGames provides access to browser games that can be played online. Individual games may be supplied by third-party publishers or distributors.</p></details><details><summary>Do I need to download anything?</summary><p>No separate installation is required for supported browser games. Games load directly through the web browser.</p></details><details><summary>Can I play games on mobile devices?</summary><p>Mobile compatibility depends on the individual game. Games that support touch controls can be played on compatible mobile devices.</p></details><details><summary>Why might a game fail to load?</summary><p>Game availability can depend on the third-party provider. Refreshing the page and checking your internet connection may resolve temporary loading problems.</p></details><details><summary>Where does the game content come from?</summary><p>BrainrotGames provides access to games supplied through third-party game publishers, distributors and technology providers. Game availability and descriptions may change over time.</p></details></div></div></section>
   </main>
   <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav><div class="footer-copy"><span>© 2026 BrainrotGames. All rights reserved.</span><p>BrainrotGames provides access to browser games supplied through third-party game publishers, distributors and technology providers. BrainrotGames does not claim ownership of third-party game content unless otherwise stated.</p></div></div></footer>
-  <script src="/app.js" defer><script>
+  <script src="/app.js" defer></script><script>
 async function renderGameCards(root,items,limit){
   const games=items.filter(Boolean).slice(0,limit);
   if(!games.length){root.innerHTML='<div class="empty">No games are available in this section right now.</div>';return;}
@@ -117,7 +117,6 @@ async function loadExploreGames(){
  catch(e){root.innerHTML='<div class="empty">Games could not be loaded right now.</div>';}
 }
 loadExploreGames();
-</script>
 </script>
 </body>
 </html>

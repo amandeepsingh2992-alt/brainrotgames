@@ -110,9 +110,21 @@ export async function onRequestGet(context) {
   html = replaceElementText(html, "game-description", gameDescription);
   const editorialAbout = `This ${gameCategory.toLowerCase()} browser game is presented as ${gameDescription} Use the information inside the game to confirm the exact objective and controls, because third-party titles can change independently of BrainrotGames. If you are deciding whether to play, consider your available time, device and preferred control style before starting.`;
   html = replaceElementText(html, "about-game", editorialAbout);
+  const gameplayOverview = `In this ${gameCategory.toLowerCase()} game, the main experience is described as: ${gameDescription}. Start by identifying the primary objective, then spend one short round learning the interaction before trying to optimize your play.`;
+  const gameFit = `${gameTitle} is presented for players interested in ${gameCategory.toLowerCase()} browser games. It can be a practical choice when you want a web-based game without a separate installation, but the best device and session length depend on the controls and pacing of the individual title.`;
+  html = replaceElementText(html, "what-to-expect", `This is a ${gameCategory.toLowerCase()} browser game. ${gameDescription} The exact controls, objectives and device behaviour can vary with the third-party version currently being served.`);
+  html = replaceElementText(html, "gameplay-overview", gameplayOverview);
+  html = replaceElementText(html, "game-fit", gameFit);
   html = replaceSection(html, "How to Play", `<p>${escapeHtml(guidance.play)}</p><p>Start with one short round. Once you understand the core interaction, you can decide whether the game is a good fit for a longer session.</p>`);
   html = replaceSection(html, "Controls", `<p>${escapeHtml(guidance.controls)}</p>`);
   html = replaceSection(html, "Tips", `<ul>${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+  html = replaceSection(html, "Frequently Asked Questions", `<div class="faq-list">
+  <details><summary>What is ${escapeHtml(gameTitle))}?</summary><p>${escapeHtml(gameDescription))}</p></details>
+  <details><summary>How do I start playing?</summary><p>Open the game player on this page and follow the instructions shown inside the game. If controls do not respond, click inside the game area first.</p></details>
+  <details><summary>What device should I use?</summary><p>Desktop is often more comfortable for keyboard and mouse games, while touch-friendly titles can work well on phones and tablets. Check the controls before committing to a longer session.</p></details>
+  <details><summary>Do I need to download anything?</summary><p>No separate installation is required for supported browser games. The game is loaded through your web browser.</p></details>
+  <details><summary>Why might the game not load?</summary><p>Third-party availability, browser settings, extensions, connection quality or temporary provider issues can affect loading. Try a refresh and another current browser if the problem continues.</p></details>
+</div>`);
   html = replaceSection(html, "Discover More Browser Games", `<p>Explore more games in the <a href="/games/${escapeHtml(slug(gameCategory))}">${escapeHtml(gameCategory)}</a> category or use our original guides for practical advice.</p><div class="sidebar-links" style="margin-top:16px">${relatedGuideMarkup}</div>`);
   html = replaceElementText(html, "game-category", gameCategory);
   html = replaceElementText(html, "detail-category", gameCategory);

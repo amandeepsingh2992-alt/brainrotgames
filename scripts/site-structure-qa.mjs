@@ -13,7 +13,16 @@ assert(routes.include.includes("/api/*"), "Missing /api/* in _routes.json");
 const index = read("index.html");
 assert(index.includes('href="/guides/"'), "Homepage is missing a server-rendered Guides link");
 assert(index.includes('id="editorial-guides-home"'), "Homepage is missing the server-rendered editorial guides section");
+assert(index.includes("What Are Browser Games?"), "Homepage is missing the browser gaming overview");
+assert(index.includes("BrainrotGames Overview"), "Homepage is missing the site overview table");
+assert(index.includes("Why Use BrainrotGames"), "Homepage is missing the value proposition section");
 assert(index.includes("adsbygoogle.js?client=ca-pub-1559302511010806"), "Homepage is missing the AdSense verification script");
+
+const play = read("play.html");
+assert(play.includes('id="what-to-expect"'), "Game pages are missing the What to Expect section");
+assert(play.includes('id="gameplay-overview"'), "Game pages are missing the Gameplay Overview section");
+assert(play.includes('id="game-fit"'), "Game pages are missing the game-fit section");
+assert(play.includes("Technology</span>"), "Game pages are missing technology details");
 
 const app = read("app.js");
 assert(!app.includes("insertAdjacentElement('afterend'"), "Editorial guide section must not be injected by app.js");

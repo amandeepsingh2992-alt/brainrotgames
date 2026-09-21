@@ -19,7 +19,7 @@ const GUIDE_SLUGS = [
   "browser-game-progress-and-saving","browser-gamepads-and-controller-support",
 ];
 const STATIC_PAGES = [
-  "/", "/games", "/guides/", "/about.html", "/contact.html",
+  "/", "/games", "/guides/", "/brainrot-games.html", "/about.html", "/contact.html",
   "/privacy.html", "/cookies.html", "/terms.html"
 ];
 function escapeXml(value = "") {

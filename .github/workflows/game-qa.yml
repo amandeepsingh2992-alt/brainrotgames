@@ -17,6 +17,8 @@ on:
       - "functions/play.js"
       - "functions/sitemap.xml.js"
       - "index.html"
+      - "play.html"
+      - "styles.css"
       - "app.js"
       - "_routes.json"
       - ".github/workflows/game-qa.yml"

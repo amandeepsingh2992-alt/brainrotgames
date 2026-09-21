@@ -1438,3 +1438,13 @@ summary::after {
 .game-quick-links a:hover{color:#fff;background:rgba(109,93,252,.12)}
 .showcase-section{padding-top:44px}
 .showcase-grid .game-card{min-height:100%}
+
+/* REFERENCE-STYLE CONTENT / GAME RATIO */
+.showcase-section{padding-top:42px}
+.explore-grid{margin-top:24px}
+.related-games-panel{padding:28px;border-top:1px solid var(--border);background:rgba(255,255,255,.012)}
+.related-games-panel .section-head{margin-bottom:12px}
+.related-games-grid{grid-template-columns:repeat(4,1fr);gap:14px}
+.related-games-grid .card-body{padding:12px}
+@media(max-width:1000px){.related-games-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:650px){.related-games-panel{padding:20px 18px}.related-games-grid{grid-template-columns:repeat(2,1fr)}}

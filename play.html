@@ -39,6 +39,11 @@
         <article class="game-card">
           <div class="game-heading"><div class="game-category" id="game-category">Game</div><h1 id="game-title">Loading game…</h1><p class="game-description" id="game-description">Loading game information…</p></div>
           <div class="game-player-wrap"><div class="game-player"><div class="player-loading" id="player-loading">Loading game…</div><iframe id="game-frame" title="Browser game" allow="fullscreen; autoplay" allowfullscreen loading="eager" referrerpolicy="no-referrer-when-downgrade"></iframe></div></div>
+          <section class="related-games-panel" aria-labelledby="related-games-title">
+            <div class="section-head"><div><p class="eyebrow">MORE TO PLAY</p><h2 id="related-games-title">More Browser Games</h2></div><a class="ghost-btn" href="/#games">View All</a></div>
+            <p class="section-intro">Explore more titles from the catalogue before or after playing this game.</p>
+            <div class="game-grid related-games-grid" id="related-games-grid"><div class="empty">Loading related games…</div></div>
+          </section>
           <div class="game-info">
             <section><h2>About This Game</h2><p id="about-game">Loading game information…</p></section>
             <section><h2>What to Expect</h2><p id="what-to-expect">This page provides a browser-playable version of the game together with practical information about the category, controls and device considerations.</p></section>
@@ -62,6 +67,29 @@
 
 <footer class="site-footer"><div class="container footer-inner"><div class="footer-brand"><strong>BrainrotGames</strong><span>Free browser games, available to play online.</span></div><nav class="footer-links" aria-label="Footer navigation"><a href="/about.html">About Us</a><a href="/contact.html">Contact Us</a><a href="/privacy.html">Privacy Policy</a><a href="/cookies.html">Cookie Policy</a><a href="/terms.html">Terms of Service</a></nav><div class="footer-copy"><span>© 2026 BrainrotGames. All rights reserved.</span><p>BrainrotGames provides access to browser games supplied through third-party game publishers, distributors and technology providers. BrainrotGames does not claim ownership of third-party game content unless otherwise stated.</p></div></div></footer>
 
+<script>
+async function loadRelatedGames(){
+ const root=document.getElementById("related-games-grid"); if(!root)return;
+ const esc=v=>String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
+ try{
+   const paramsNow=new URLSearchParams(window.location.search);
+   const currentId=paramsNow.get("id")||"";
+   const res=await fetch("/api/games?page=1",{headers:{Accept:"application/json"}});
+   if(!res.ok)throw new Error();
+   const data=await res.json();
+   const items=(Array.isArray(data.items)?data.items:[]).filter(g=>String(g.id||"")!==currentId).slice(0,8);
+   if(!items.length){root.innerHTML='<div class="empty">No related games are available right now.</div>';return;}
+   root.innerHTML=items.map(game=>{
+     const title=esc(game.title||"Browser Game"),cat=esc(game.category||"Browser Game");
+     const id=encodeURIComponent(String(game.id||""));
+     const slug=encodeURIComponent(String(game.title||"browser-game").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,""));
+     const image=game.image?'<img src="'+esc(game.image)+'" alt="'+title+'" loading="lazy" decoding="async">':'<div class="fallback" aria-hidden="true">🎮</div>';
+     return '<article class="game-card"><a href="/play?id='+id+'&title='+slug+'"><div class="thumb">'+image+'</div><div class="card-body"><div class="game-title">'+title+'</div><div class="game-meta"><span>'+cat+'</span><span>Play online</span></div><span class="play-btn">Play Game</span></div></a></article>';
+   }).join("");
+ }catch(e){root.innerHTML='<div class="empty">Related games could not be loaded right now.</div>';}
+}
+loadRelatedGames();
+</script>
 <script>
 const params=new URLSearchParams(window.location.search);const gameId=params.get("id");const requestedTitle=params.get("title")||"";
 const gameContent=document.getElementById("game-content"),gameError=document.getElementById("game-error"),titleEl=document.getElementById("game-title"),descriptionEl=document.getElementById("game-description"),aboutEl=document.getElementById("about-game"),categoryEl=document.getElementById("game-category"),detailCategoryEl=document.getElementById("detail-category"),breadcrumbEl=document.getElementById("breadcrumb-title"),frame=document.getElementById("game-frame"),playerLoading=document.getElementById("player-loading"),metaDescription=document.getElementById("meta-description"),canonical=document.getElementById("canonical-url");

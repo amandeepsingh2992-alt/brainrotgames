@@ -22,6 +22,45 @@ export async function onRequestGet(context) {
     const pattern = new RegExp(`(<[^>]+\\bid=["']${id}["'][^>]*>)[\\s\\S]*?(</[^>]+>)`, "i");
     return source.replace(pattern, `$1${safeValue}$2`);
   }
+  function replaceSection(source, heading, body) {
+    const pattern = new RegExp(`<section>\\s*<h2>${heading}</h2>[\\s\\S]*?</section>`, "i");
+    return source.replace(pattern, `<section><h2>${heading}</h2>${body}</section>`);
+  }
+  function categoryGuidance(category) {
+    const key = slug(category);
+    const map = {
+      action: { play: "Expect short feedback loops, movement, timing and quick decisions. Start by learning the basic movement and one core action before trying to master every mechanic.", controls: "Action games commonly use keyboard movement plus mouse or touch input, but the individual game may differ. Click inside the game first if keyboard input does not respond.", tips: ["Learn one reliable movement pattern before experimenting with advanced actions.","Prioritize positioning and timing rather than pressing every available action.","If the game feels too difficult on touch, test it on desktop."] },
+      adventure: { play: "Take a few minutes to understand the objective and explore the available actions. Adventure games often reward observation, so do not rush past instructions or environmental clues.", controls: "Expect a mixture of movement, mouse or touch interaction and occasional menu controls. The exact scheme depends on the individual game.", tips: ["Read objective text before moving on.","Explore deliberately instead of repeating the same action when progress stops.","Use a larger screen if the interface feels crowded."] },
+      arcade: { play: "Arcade games are often built around a simple core loop. Learn that loop first, then focus on timing, positioning and repeatable decisions.", controls: "Keyboard, mouse and touch controls are all common in arcade games. Test the main action once before committing to a longer run.", tips: ["Learn the scoring or failure condition early.","Use short practice runs to learn timing.","For touch play, keep fingers clear of important visual feedback."] },
+      casual: { play: "Start with the game's main objective and play one short round before deciding whether the format suits you. Casual games are often easiest to understand through a small amount of hands-on play.", controls: "Casual games frequently use simple mouse or touch controls, but some still require keyboard input. Check the in-game instructions.", tips: ["Choose a short round when you only have a few minutes.","Do not assume simple graphics mean simple controls.","If you want a relaxed session, avoid games that require constant rapid input."] },
+      puzzle: { play: "Slow down and identify the objective before making repeated moves. Puzzle games often reward planning one or two steps ahead rather than reacting immediately.", controls: "Puzzle games commonly use mouse, touch or simple keyboard input. Precision and board visibility can matter more than reaction speed.", tips: ["Look for patterns before committing to a move.","Prefer moves that leave several future options.","If the interface is small, switch to a larger screen."] },
+      racing: { play: "Start by learning acceleration, braking and steering before chasing fast times. A few consistent laps are more useful than one risky lap.", controls: "Racing games often feel better with a keyboard or gamepad-like input, although some are touch-friendly. Test steering sensitivity before a serious run.", tips: ["Brake before the corner rather than during the turn.","Aim for repeatable lines instead of maximum speed everywhere.","If steering feels imprecise on mobile, try desktop."] },
+      sports: { play: "Learn the basic scoring or match objective first, then practice the main action. Sports games can range from arcade-style controls to more involved simulations.", controls: "Expect keyboard, mouse or touch controls depending on the sport and game design. Check the game's own instructions before starting a match.", tips: ["Learn the scoring condition before optimizing technique.","Use a short practice round to understand timing.","For shared play, agree on controls before starting."] },
+      strategy: { play: "Take time to understand the objective, resources and consequences of actions. Strategy games usually reward deliberate decisions more than fast clicking.", controls: "Mouse and touch interfaces are common, with keyboard shortcuts available in some games. A larger screen can help when several panels are visible.", tips: ["Identify the win condition before spending resources.","Prefer flexible positions that leave future options open.","Do not rush turns simply because an action is available."] },
+      simulation: { play: "Start by learning the main system you are expected to manage. Simulations can have many options, so focus on the first objective instead of trying to understand everything at once.", controls: "Mouse and touch are common for menus and management, while some games also use keyboard shortcuts.", tips: ["Change one variable at a time when learning a system.","Watch how decisions affect later outcomes.","Use longer sessions when a game has a substantial setup phase."] },
+      board: { play: "Confirm the objective and turn order, then take a moment to understand what actions are legal. Familiar board-game rules can still differ between digital versions.", controls: "Board games usually work well with mouse or touch input. A larger screen can improve readability for detailed boards.", tips: ["Read the complete objective before making the first move.","Protect future options rather than chasing a small immediate gain.","For two-player games, agree on the rules before starting."] },
+      card: { play: "Learn the win condition and the role of each card before trying advanced tactics. Digital card games can move quickly once the basic rules are understood.", controls: "Mouse and touch controls are common. Make sure the browser focus is inside the game before using keyboard shortcuts if any are provided.", tips: ["Learn the basic value of each card or action.","Track what information is public before making a decision.","Start with short matches while learning the rules."] },
+      word: { play: "Begin by identifying the objective, allowed words or matching rules. Word games often reward careful reading and pattern recognition rather than speed alone.", controls: "Mouse and touch work well for many word games, while keyboard input can be faster on desktop when letters are entered directly.", tips: ["Read the full prompt before guessing.","Use known patterns to narrow possibilities.","On mobile, make sure the keyboard does not cover important game information."] }
+    };
+    return map[key] || { play: "Start by reading the game's objective and instructions, then play a short test round before trying to optimize your performance. Individual browser games can use very different mechanics even within the same category.", controls: "Controls vary by game and may use keyboard, mouse, touch or a combination. Click inside the game if keyboard input is not responding and check the in-game instructions.", tips: ["Learn the basic objective before experimenting with advanced actions.","Use a stable connection and current browser for the initial test.","If controls feel uncomfortable, try another device or game."] };
+  }
+  function guideLinks(category) {
+    const map = {
+      action: [["Short-break games","/guides/browser-games-for-short-breaks.html"],["Keyboard and mouse controls","/guides/keyboard-mouse-controls"]],
+      adventure: [["Choose a browser game","/guides/choose-browser-game"],["Mobile browser gaming","/guides/mobile-browser-gaming"]],
+      arcade: [["Short-break games","/guides/browser-games-for-short-breaks.html"],["Casual vs arcade vs puzzle","/guides/casual-arcade-puzzle-games.html"]],
+      casual: [["Session planning","/guides/browser-game-session-planning.html"],["Casual vs arcade vs puzzle","/guides/casual-arcade-puzzle-games.html"]],
+      puzzle: [["Puzzle strategy","/guides/puzzle-game-strategy"],["Choose a browser game","/guides/choose-browser-game"]],
+      racing: [["Racing tips","/guides/browser-racing-tips"],["Game controls","/guides/browser-game-controls-guide.html"]],
+      sports: [["Choose by device","/guides/choosing-browser-games-by-device.html"],["Choose a browser game","/guides/choose-browser-game"]],
+      strategy: [["Choose a browser game","/guides/choose-browser-game"],["Session planning","/guides/browser-game-session-planning.html"]],
+      simulation: [["Choose a browser game","/guides/choose-browser-game"],["Session planning","/guides/browser-game-session-planning.html"]],
+      board: [["Session planning","/guides/browser-game-session-planning.html"],["Choose a browser game","/guides/choose-browser-game"]],
+      card: [["Session planning","/guides/browser-game-session-planning.html"],["Choose a browser game","/guides/choose-browser-game"]],
+      word: [["Choose a browser game","/guides/choose-browser-game"],["Choose by device","/guides/choosing-browser-games-by-device.html"]]
+    };
+    return map[slug(category)] || [["Browser game performance","/guides/browser-game-performance"],["Browser game controls","/guides/browser-game-controls-guide.html"]];
+  }
   function injectJsonLd(source, id, data) {
     const json = JSON.stringify(data).replace(/</g, "\\u003c");
     const script = `<script type="application/ld+json" id="${id}">${json}</script>`;
@@ -56,6 +95,9 @@ export async function onRequestGet(context) {
   }
 
   const seoTitle = `${gameTitle} - Play Free Online | BrainrotGames`;
+  const guidance = categoryGuidance(gameCategory);
+  const relatedGuideMarkup = guideLinks(gameCategory).map(([label,url]) => `<a href="${url}">${escapeHtml(label)} →</a>`).join("");
+
   const seoDescription = cleanText(`Play ${gameTitle} online for free on BrainrotGames. ${gameDescription}`).slice(0, 160);
   const canonicalUrl = new URL("/play", requestUrl.origin);
   canonicalUrl.searchParams.set("id", gameId);
@@ -66,7 +108,12 @@ export async function onRequestGet(context) {
   html = html.replace(/(<meta\s+name=["']description["'][^>]*\bid=["']meta-description["'][^>]*content=["'])[^"']*(["'])/i, `$1${escapeHtml(seoDescription)}$2`);
   html = replaceElementText(html, "game-title", gameTitle);
   html = replaceElementText(html, "game-description", gameDescription);
-  html = replaceElementText(html, "about-game", gameDescription);
+  const editorialAbout = `This ${gameCategory.toLowerCase()} browser game is presented as ${gameDescription} Use the information inside the game to confirm the exact objective and controls, because third-party titles can change independently of BrainrotGames. If you are deciding whether to play, consider your available time, device and preferred control style before starting.`;
+  html = replaceElementText(html, "about-game", editorialAbout);
+  html = replaceSection(html, "How to Play", `<p>${escapeHtml(guidance.play)}</p><p>Start with one short round. Once you understand the core interaction, you can decide whether the game is a good fit for a longer session.</p>`);
+  html = replaceSection(html, "Controls", `<p>${escapeHtml(guidance.controls)}</p>`);
+  html = replaceSection(html, "Tips", `<ul>${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+  html = replaceSection(html, "Discover More Browser Games", `<p>Explore more games in the <a href="/games/${escapeHtml(slug(gameCategory))}">${escapeHtml(gameCategory)}</a> category or use our original guides for practical advice.</p><div class="sidebar-links" style="margin-top:16px">${relatedGuideMarkup}</div>`);
   html = replaceElementText(html, "game-category", gameCategory);
   html = replaceElementText(html, "detail-category", gameCategory);
   html = replaceElementText(html, "breadcrumb-title", gameTitle);

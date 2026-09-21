@@ -1,4 +1,4 @@
-import { GAMEPIX_SID, slug } from "../lib/gamepix.js";
+import { GAMEPIX_FEED_BASE, GAMEPIX_SID, slug, normalizeGame } from "../lib/gamepix.js";
 
 const CACHE_TTL = 900;
 const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
@@ -13,12 +13,29 @@ function json(data, status = 200, cache = CACHE_TTL) {
   });
 }
 
-function buildDirectEmbedUrl(title) {
-  const namespace = slug(title);
-  if (!namespace) return "";
-  return `https://play.gamepix.com/${encodeURIComponent(namespace)}/embed?sid=${encodeURIComponent(GAMEPIX_SID)}`;
+async function findGame(id, requestedTitle) {
+  const targetTitle = slug(requestedTitle);
+  const pages = Array.from({ length: 10 }, (_, i) => i + 1);
+  const results = await Promise.all(pages.map(async page => {
+    try {
+      const feedUrl = new URL(GAMEPIX_FEED_BASE);
+      feedUrl.searchParams.set("sid", GAMEPIX_SID);
+      feedUrl.searchParams.set("pagination", "12");
+      feedUrl.searchParams.set("page", String(page));
+      const response = await fetch(feedUrl.toString(), { headers: { Accept: "application/json" }, cf: { cacheTtl: CACHE_TTL, cacheEverything: true } });
+      if (!response.ok) return [];
+      const data = await response.json();
+      return Array.isArray(data.items) ? data.items : Array.isArray(data.games) ? data.games : Array.isArray(data.data) ? data.data : Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : [];
+    } catch { return []; }
+  }));
+  for (const games of results) for (const raw of games) {
+    const rawId = String(raw?.id ?? raw?.namespace ?? "");
+    const rawTitle = slug(raw?.title || "");
+    if (BLOCKED_GAME_IDS.has(rawId)) continue;
+    if (rawId === id || rawTitle === targetTitle || String(raw?.namespace || "") === targetTitle) return normalizeGame(raw);
+  }
+  return null;
 }
-
 async function validateGamePixEmbed(embedUrl) {
   if (!embedUrl) return false;
   try {
@@ -51,25 +68,24 @@ export async function onRequestGet(context) {
     return json({ error: "Game not found or unavailable" }, 404, 60);
   }
 
-  const title = requestedTitle.replace(/-/g, " ").replace(/\b\w/g, char => char.toUpperCase());
-  const embedUrl = buildDirectEmbedUrl(requestedTitle);
-  const cacheKey = new Request(`${url.toString()}&cache=direct-title-v1`, { method: "GET" });
+  const cacheKey = new Request(`${url.toString()}&cache=feed-backed-v2`, { method: "GET" });
   const cache = caches.default;
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
 
-  if (!(await validateGamePixEmbed(embedUrl))) {
+  const game = await findGame(id, requestedTitle);
+  if (!game || !game.url || !(await validateGamePixEmbed(game.url))) {
     return json({ error: "Game not found or unavailable" }, 404, 60);
   }
 
   const result = json({
-    id,
-    namespace: slug(requestedTitle),
-    title,
-    description: `Play ${title} online for free on BrainrotGames.`,
-    category: "Browser Game",
-    image: "",
-    url: embedUrl
+    id: String(game.id),
+    namespace: String(game.namespace || slug(game.title)),
+    title: String(game.title || requestedTitle),
+    description: String(game.description || `Play ${game.title || requestedTitle} online for free on BrainrotGames.`),
+    category: String(game.category || "Other"),
+    image: String(game.image || ""),
+    url: game.url
   });
 
   context.waitUntil(cache.put(cacheKey, result.clone()));

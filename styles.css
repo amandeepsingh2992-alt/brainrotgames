@@ -1431,3 +1431,10 @@ summary::after {
   }
 
 }
+
+/* GAME PAGE QUICK NAV */
+.game-quick-links{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px;padding:12px 14px;background:var(--panel);border:1px solid var(--border);border-radius:14px}
+.game-quick-links a{padding:8px 11px;border-radius:9px;color:var(--muted);font-size:13px;background:rgba(255,255,255,.02)}
+.game-quick-links a:hover{color:#fff;background:rgba(109,93,252,.12)}
+.showcase-section{padding-top:44px}
+.showcase-grid .game-card{min-height:100%}

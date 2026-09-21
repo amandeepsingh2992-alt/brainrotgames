@@ -1,4 +1,6 @@
 const SITE_URL = "https://brainrotgames.me";
+// Provider IDs permanently excluded from the public sitemap after QA/provider checks.
+const BLOCKED_GAME_IDS = new Set(["7RU2YF","011ODI","ANMAR4"]);
 const CURATED_CATEGORIES = [
   "action","adventure","arcade","casual","puzzle","racing",
   "sports","strategy","simulation","board","card","word"

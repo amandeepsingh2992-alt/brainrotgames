@@ -13,7 +13,10 @@ const GUIDE_SLUGS = [
   "multiplayer-browser-gaming-tips","browser-gaming-accessibility",
   "browser-game-loading-errors","browser-game-controls-guide",
   "choosing-browser-games-by-device","browser-game-session-planning",
-  "browser-game-safety-and-privacy","finding-browser-games-without-downloads"
+  "browser-game-safety-and-privacy","finding-browser-games-without-downloads",
+  "how-browser-games-work","how-to-evaluate-a-browser-game",
+  "browser-game-audio-and-video-troubleshooting","browser-games-for-chromebook-and-low-end-devices",
+  "browser-game-progress-and-saving","browser-gamepads-and-controller-support",
 ];
 const STATIC_PAGES = [
   "/", "/games", "/guides/", "/about.html", "/contact.html",

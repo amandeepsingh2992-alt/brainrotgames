@@ -119,7 +119,7 @@ export async function onRequestGet(context) {
   html = replaceSection(html, "Controls", `<p>${escapeHtml(guidance.controls)}</p>`);
   html = replaceSection(html, "Tips", `<ul>${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
   html = replaceSection(html, "Frequently Asked Questions", `<div class="faq-list">
-  <details><summary>What is ${escapeHtml(gameTitle))}?</summary><p>${escapeHtml(gameDescription))}</p></details>
+  <details><summary>What is ${escapeHtml(gameTitle)}?</summary><p>${escapeHtml(gameDescription)}</p></details>
   <details><summary>How do I start playing?</summary><p>Open the game player on this page and follow the instructions shown inside the game. If controls do not respond, click inside the game area first.</p></details>
   <details><summary>What device should I use?</summary><p>Desktop is often more comfortable for keyboard and mouse games, while touch-friendly titles can work well on phones and tablets. Check the controls before committing to a longer session.</p></details>
   <details><summary>Do I need to download anything?</summary><p>No separate installation is required for supported browser games. The game is loaded through your web browser.</p></details>

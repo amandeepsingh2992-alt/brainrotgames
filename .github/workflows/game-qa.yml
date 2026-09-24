@@ -44,6 +44,12 @@ jobs:
       - name: Run A-Z source, HTML, routing and security QA
         run: node scripts/full-site-qa.mjs
 
+      - name: Install local integration test tools
+        run: npm install --no-save --no-package-lock playwright@1.63.0 wrangler@4.135.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
       - name: Run complete GamePix provider health scan
         run: node scripts/provider-health.mjs
         env:
@@ -51,6 +57,39 @@ jobs:
           CONCURRENCY: 25
           TIMEOUT_MS: 6000
           MIN_SCANNED: 1000
+
+      - name: Start local Cloudflare Pages runtime
+        run: |
+          nohup npx wrangler pages dev . --port 8788 --ip 127.0.0.1 > /tmp/brainrot-wrangler.log 2>&1 &
+          echo $! > /tmp/brainrot-wrangler.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8788/ >/dev/null; then
+              echo "Local Pages runtime is ready."
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/brainrot-wrangler.log
+          exit 1
+
+      - name: Run end-to-end local route and gameplay QA
+        env:
+          BASE_URL: http://127.0.0.1:8788
+          BROWSER_SAMPLE: 30
+          BROWSER_IDS: MI991T
+          CONCURRENCY: 12
+          RETRIES: 2
+          LOAD_WAIT: 3000
+          GAME_TIMEOUT: 10000
+        run: node scripts/game-qa.mjs
+
+      - name: Stop local Cloudflare Pages runtime
+        if: always()
+        run: |
+          if [ -f /tmp/brainrot-wrangler.pid ]; then
+            kill $(cat /tmp/brainrot-wrangler.pid) || true
+          fi
+          cat /tmp/brainrot-wrangler.log || true
 
       - name: Upload health report
         if: always()

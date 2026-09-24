@@ -73,6 +73,29 @@ async function findGame(id, requestedTitle) {
   }
   return null;
 }
+async function validateGamePixEmbed(embedUrl) {
+  if (!embedUrl) return false;
+  try {
+    const response = await fetch(embedUrl, {
+      method: "GET",
+      redirect: "follow",
+      headers: { Accept: "text/html,application/xhtml+xml" },
+      signal: AbortSignal.timeout(5000),
+      cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
+    });
+    if (!response.ok) return false;
+    const finalUrl = new URL(response.url);
+    if (finalUrl.protocol !== "https:" || !finalUrl.hostname.endsWith("gamepix.com")) return false;
+    const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
+    if (xFrame === "deny" || xFrame === "sameorigin") return false;
+    const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
+    if (/frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp)) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const id = String(url.searchParams.get("id") || "").trim();
@@ -88,7 +111,7 @@ export async function onRequestGet(context) {
   if (cached) return cached;
 
   const game = await findGame(id, requestedTitle);
-  if (!game || !game.url) {
+  if (!game || !game.url || !(await validateGamePixEmbed(game.url))) {
     return json({ error: "Game not found or unavailable" }, 404, 60);
   }
 

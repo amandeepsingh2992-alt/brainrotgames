@@ -84,6 +84,7 @@ const htmlFiles = files.filter(f => f.endsWith(".html"));
 const staticPaths = new Set(files.filter(f => !f.startsWith("functions/")).map(f => "/" + f));
 staticPaths.add("/");
 staticPaths.add("/guides/");
+staticPaths.add("/games");
 staticPaths.add("/games/");
 staticPaths.add("/play");
 staticPaths.add("/sitemap.xml");

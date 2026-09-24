@@ -53,6 +53,7 @@ async function fetchPage(page) {
 async function inspect(game) {
   const id = idOf(game);
   const gameUrl = urlOf(game);
+  const embedUrl = embedUrlOf(game);
   if (!id) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "missing-id" };
   if (!safeUrl(gameUrl) || !safeUrl(embedUrl)) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "unsafe-or-missing-game-url", url: gameUrl, embedUrl };
   try {

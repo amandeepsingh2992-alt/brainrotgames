@@ -11,6 +11,7 @@ const LOAD_WAIT = Number(process.env.LOAD_WAIT || 3500);
 const GAME_TIMEOUT = Number(process.env.GAME_TIMEOUT || 12000);
 const BROWSER_SAMPLE = Number(process.env.BROWSER_SAMPLE || 60);
 const BROWSER_ALL = process.env.BROWSER_ALL === "1";
+const BROWSER_IDS = new Set((process.env.BROWSER_IDS || "MI991T").split(",").map(x => x.trim()).filter(Boolean));
 const OUTPUT_PREFIX = process.env.OUTPUT_PREFIX || "game-qa";
 const failures = [];
 
@@ -188,7 +189,7 @@ const siteFailures = siteResults.filter(r => r.status === "fail");
 
 const browserGames = BROWSER_ALL
   ? games
-  : games.slice(0, Math.min(BROWSER_SAMPLE, games.length));
+  : [...new Map(games.filter(game => BROWSER_IDS.has(game.id)).concat(games.slice(0, Math.min(BROWSER_SAMPLE, games.length))).map(game => [game.id, game])).values()];
 const browser = await chromium.launch({ headless: true });
 const browserResults = await mapLimit(browserGames, Math.min(6, CONCURRENCY), game => checkEmbeddedGame(browser, game));
 await browser.close();

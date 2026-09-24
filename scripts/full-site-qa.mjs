@@ -190,6 +190,8 @@ const workflow = await fs.readFile(".github/workflows/game-qa.yml", "utf8");
 const liveWorkflow = await fs.readFile(".github/workflows/live-site-qa.yml", "utf8");
 assert(workflow.includes("scripts/full-site-qa.mjs"), "workflow", "Full site QA is not part of the main QA workflow");
 assert(workflow.includes("scripts/provider-health.mjs"), "workflow", "Provider health QA is not part of the main QA workflow");
+assert(workflow.includes("wrangler pages dev"), "workflow", "Local Cloudflare Pages runtime QA is missing");
+assert(workflow.includes("BROWSER_IDS: MI991T"), "workflow", "Known failing game is not explicitly covered by browser QA");
 assert(liveWorkflow.includes("scripts/game-qa.mjs"), "workflow", "Live deployment QA does not run game integration QA");
 assert(liveWorkflow.includes("deployment_status"), "workflow", "Live QA is not triggered after deployments");
 

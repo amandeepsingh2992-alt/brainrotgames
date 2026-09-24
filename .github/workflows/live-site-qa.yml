@@ -61,7 +61,7 @@ jobs:
       - name: Run full live catalogue and browser QA
         env:
           BASE_URL: ${{ steps.target.outputs.base_url }}
-          BROWSER_ALL: ${{ inputs.browser_all }}
+          BROWSER_ALL: ${{ inputs.browser_all && '1' || '0' }}
           BROWSER_SAMPLE: 60
           MAX_PAGES: 100
           CONCURRENCY: 12

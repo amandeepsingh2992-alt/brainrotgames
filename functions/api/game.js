@@ -34,7 +34,13 @@ async function findGame(id, requestedTitle) {
           ? payload.data
           : Array.isArray(payload?.games)
             ? payload.games
-            : [payload?.game || payload];
+            : Array.isArray(payload?.results)
+              ? payload.results
+              : payload?.data && typeof payload.data === "object"
+                ? [payload.data]
+                : payload?.game && typeof payload.game === "object"
+                  ? [payload.game]
+                  : [payload];
       for (const raw of candidates) {
         if (!raw || typeof raw !== "object") continue;
         const rawId = String(raw.id ?? raw.gid ?? id);
@@ -53,19 +59,27 @@ async function findGame(id, requestedTitle) {
     }
   } catch {}
 
-  // Fallback for catalogue responses that do not expose the single-game
-  // endpoint or when the provider temporarily returns an incomplete record.
-  const pages = Array.from({ length: 10 }, (_, i) => i + 1);
-  const results = await Promise.all(pages.map(async page => {
+  // Fallback: use GamePix's documented large catalogue endpoint instead of
+  // scanning only the first 10 feed pages. This matters when a valid game
+  // appears deep in the catalogue but the single-game endpoint is incomplete.
+  const offsets = [0, 1000];
+  const results = await Promise.all(offsets.map(async offset => {
     try {
-      const feedUrl = new URL(GAMEPIX_FEED_BASE);
-      feedUrl.searchParams.set("sid", GAMEPIX_SID);
-      feedUrl.searchParams.set("pagination", "12");
-      feedUrl.searchParams.set("page", String(page));
-      const response = await fetch(feedUrl.toString(), { headers: { Accept: "application/json" }, cf: { cacheTtl: CACHE_TTL, cacheEverything: true } });
+      const catalogueUrl = new URL("https://games.gamepix.com/games");
+      catalogueUrl.searchParams.set("sid", GAMEPIX_SID);
+      catalogueUrl.searchParams.set("limit", "1000");
+      catalogueUrl.searchParams.set("offset", String(offset));
+      const response = await fetch(catalogueUrl.toString(), {
+        headers: { Accept: "application/json" },
+        cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
+      });
       if (!response.ok) return [];
       const data = await response.json();
-      return Array.isArray(data.items) ? data.items : Array.isArray(data.games) ? data.games : Array.isArray(data.data) ? data.data : Array.isArray(data.results) ? data.results : Array.isArray(data) ? data : [];
+      return Array.isArray(data?.items) ? data.items
+        : Array.isArray(data?.games) ? data.games
+        : Array.isArray(data?.data) ? data.data
+        : Array.isArray(data?.results) ? data.results
+        : Array.isArray(data) ? data : [];
     } catch { return []; }
   }));
   for (const games of results) for (const raw of games) {

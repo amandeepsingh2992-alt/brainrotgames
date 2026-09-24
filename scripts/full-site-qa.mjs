@@ -128,7 +128,8 @@ for (const file of htmlFiles) {
   const canonicalCount = (html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi) || []).length;
   assert(titleCount === 1, "html-meta", file + " must contain exactly one title");
   assert(descCount === 1, "html-meta", file + " must contain exactly one meta description");
-  assert(canonicalCount === 1, "html-meta", file + " must contain exactly one canonical link");
+  if (file === "404.html") assert(canonicalCount === 0, "html-meta", "404.html should not advertise a canonical URL");
+  else assert(canonicalCount === 1, "html-meta", file + " must contain exactly one canonical link");
 
   const urls = [...html.matchAll(/\b(?:href|src)=["']([^"']+)["']/gi)].map(m => m[1]);
   for (const raw of urls) {

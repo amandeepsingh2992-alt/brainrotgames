@@ -1,7 +1,7 @@
 import { GAMEPIX_FEED_BASE, normalizeGamePixCategory, normalizeGame, slug } from "../lib/gamepix.js";
 
 const CACHE_TTL = 900;
-const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI"]);
+const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
 function json(data, status = 200, cache = CACHE_TTL) {
   return new Response(JSON.stringify(data), {

@@ -1448,3 +1448,97 @@ summary::after {
 .related-games-grid .card-body{padding:12px}
 @media(max-width:1000px){.related-games-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:650px){.related-games-panel{padding:20px 18px}.related-games-grid{grid-template-columns:repeat(2,1fr)}}
+
+
+/* MOBILE POLISH
+   Keep navigation, controls, cards and game embeds usable on narrow screens. */
+@media (max-width: 700px) {
+  html, body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .site-header .nav {
+    min-height: 0;
+    flex-wrap: wrap;
+    padding: 12px 0;
+    row-gap: 10px;
+  }
+
+  .site-header .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .site-header .search-wrap {
+    flex: 1 0 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .site-header .search-wrap input {
+    min-height: 44px;
+  }
+
+  .category,
+  .ghost-btn,
+  .cta,
+  .play-btn,
+  .game-quick-links a {
+    min-height: 44px;
+  }
+
+  .game-quick-links a {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .game-card,
+  .discovery-card,
+  .content-panel,
+  .sidebar-card {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 650px) {
+  .game-player {
+    aspect-ratio: 4 / 3;
+    min-height: 220px;
+  }
+
+  .game-player iframe {
+    touch-action: manipulation;
+  }
+
+  .game-heading h1,
+  .game-description,
+  .game-info p,
+  .game-info li {
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: clamp(38px, 12vw, 48px);
+  }
+
+  .container {
+    width: calc(100% - 24px);
+  }
+
+  .game-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .card-body {
+    min-width: 0;
+  }
+}

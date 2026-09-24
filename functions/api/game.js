@@ -15,6 +15,47 @@ function json(data, status = 200, cache = CACHE_TTL) {
 
 async function findGame(id, requestedTitle) {
   const targetTitle = slug(requestedTitle);
+
+  // Resolve the exact GamePix ID first. The catalogue feed is paginated and a
+  // valid game can move beyond the first few pages as the provider catalogue
+  // changes. GamePix exposes a single-game endpoint specifically for this case.
+  try {
+    const gameUrl = new URL("https://games.gamepix.com/game");
+    gameUrl.searchParams.set("sid", GAMEPIX_SID);
+    gameUrl.searchParams.set("gid", id);
+    const response = await fetch(gameUrl.toString(), {
+      headers: { Accept: "application/json" },
+      cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
+    });
+    if (response.ok) {
+      const payload = await response.json();
+      const candidates = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.games)
+            ? payload.games
+            : [payload?.game || payload];
+      for (const raw of candidates) {
+        if (!raw || typeof raw !== "object") continue;
+        const rawId = String(raw.id ?? raw.gid ?? id);
+        if (BLOCKED_GAME_IDS.has(rawId)) continue;
+        if (rawId !== id && String(raw.namespace || "") !== id) continue;
+        const title = String(raw.title || requestedTitle);
+        const normalized = normalizeGame({
+          ...raw,
+          id: raw.id ?? id,
+          // The single-game endpoint may omit namespace; GamePix embeds use
+          // the title slug in that situation.
+          namespace: raw.namespace || slug(title)
+        });
+        if (normalized.url) return normalized;
+      }
+    }
+  } catch {}
+
+  // Fallback for catalogue responses that do not expose the single-game
+  // endpoint or when the provider temporarily returns an incomplete record.
   const pages = Array.from({ length: 10 }, (_, i) => i + 1);
   const results = await Promise.all(pages.map(async page => {
     try {

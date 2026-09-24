@@ -158,6 +158,12 @@ for (const file of htmlFiles) {
 
 const sitemapJs = await fs.readFile("functions/sitemap.xml.js", "utf8");
 assert(sitemapJs.includes("brainrot-games.html"), "sitemap", "Brainrot Games editorial page is missing from sitemap source");
+for (const slug of ["choose-browser-game","browser-game-performance","mobile-browser-gaming","puzzle-game-strategy","browser-racing-tips","keyboard-mouse-controls","two-player-browser-games","how-we-select-games","browser-games-for-short-breaks","casual-arcade-puzzle-games","multiplayer-browser-gaming-tips","browser-gaming-accessibility","browser-game-loading-errors","browser-game-controls-guide","choosing-browser-games-by-device","browser-game-session-planning","browser-game-safety-and-privacy","finding-browser-games-without-downloads","how-browser-games-work","how-to-evaluate-a-browser-game","browser-game-audio-and-video-troubleshooting","browser-games-for-chromebook-and-low-end-devices","browser-game-progress-and-saving","browser-gamepads-and-controller-support"]) {
+  assert(sitemapJs.includes(slug), "sitemap", "Guide slug missing from sitemap source: " + slug);
+}
+for (const category of ["action","adventure","arcade","casual","puzzle","racing","sports","strategy","simulation","board","card","word"]) {
+  assert(sitemapJs.includes(category), "sitemap", "Curated category missing from sitemap source: " + category);
+}
 
 const apiGame = await fs.readFile("functions/api/game.js", "utf8");
 const apiGames = await fs.readFile("functions/api/games.js", "utf8");

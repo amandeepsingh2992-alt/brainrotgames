@@ -19,6 +19,14 @@ function extractItems(data) {
 
 function idOf(game) { return String(game?.id ?? game?.namespace ?? "").trim(); }
 function urlOf(game) { return String(game?.url || game?.game_url || "").trim(); }
+function embedUrlOf(game) {
+  const namespace = String(game?.namespace || "").trim();
+  const source = urlOf(game);
+  if (!namespace) return source;
+  let sid = "E158N";
+  try { sid = new URL(source).searchParams.get("sid") || sid; } catch {}
+  return "https://play.gamepix.com/" + encodeURIComponent(namespace) + "/embed?sid=" + encodeURIComponent(sid);
+}
 function safeUrl(value) {
   try {
     const u = new URL(value);
@@ -46,9 +54,9 @@ async function inspect(game) {
   const id = idOf(game);
   const gameUrl = urlOf(game);
   if (!id) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "missing-id" };
-  if (!safeUrl(gameUrl)) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "unsafe-or-missing-game-url", url: gameUrl };
+  if (!safeUrl(gameUrl) || !safeUrl(embedUrl)) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "unsafe-or-missing-game-url", url: gameUrl, embedUrl };
   try {
-    const response = await fetch(gameUrl, {
+    const response = await fetch(embedUrl, {
       method: "GET",
       redirect: "follow",
       headers: { Accept: "text/html,application/xhtml+xml" },
@@ -57,9 +65,9 @@ async function inspect(game) {
     const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
     const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
     const frameBlocked = xFrame === "deny" || xFrame === "sameorigin" || /frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp);
-    if (response.status === 404 || response.status === 410) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: `http-${response.status}`, url: gameUrl };
-    if (frameBlocked) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "iframe-blocked", url: gameUrl, xFrame, csp: csp.slice(0, 500) };
-    return { id, title: game?.title || "Untitled", status: "healthy-provider", httpStatus: response.status, url: gameUrl };
+    if (response.status === 404 || response.status === 410) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: `http-${response.status}`, url: gameUrl, embedUrl };
+    if (frameBlocked) return { id, title: game?.title || "Untitled", status: "definite-failure", reason: "iframe-blocked", url: gameUrl, embedUrl, xFrame, csp: csp.slice(0, 500) };
+    return { id, title: game?.title || "Untitled", status: "healthy-provider", httpStatus: response.status, url: gameUrl, embedUrl };
   } catch (error) {
     return { id, title: game?.title || "Untitled", status: "transient", reason: error.message, url: gameUrl };
   }

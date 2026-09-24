@@ -1,4 +1,5 @@
 export const GAMEPIX_SID = "E158N";
+export const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 export const GAMEPIX_FEED_BASE = "https://feeds.gamepix.com/v2/json";
 
 export function slug(value = "") {

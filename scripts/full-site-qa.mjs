@@ -172,9 +172,11 @@ assert(gamepix.includes("play.gamepix.com"), "gamepix", "Canonical GamePix embed
 assert(apiGames.includes("BLOCKED_GAME_IDS"), "catalogue", "Catalogue API blocklist is missing");
 
 const workflow = await fs.readFile(".github/workflows/game-qa.yml", "utf8");
+const liveWorkflow = await fs.readFile(".github/workflows/live-site-qa.yml", "utf8");
 assert(workflow.includes("scripts/full-site-qa.mjs"), "workflow", "Full site QA is not part of the main QA workflow");
-assert(workflow.includes("scripts/game-qa.mjs"), "workflow", "Browser/game integration QA is not part of the main QA workflow");
 assert(workflow.includes("scripts/provider-health.mjs"), "workflow", "Provider health QA is not part of the main QA workflow");
+assert(liveWorkflow.includes("scripts/game-qa.mjs"), "workflow", "Live deployment QA does not run game integration QA");
+assert(liveWorkflow.includes("deployment_status"), "workflow", "Live QA is not triggered after deployments");
 
 console.log(JSON.stringify({
   status: failures.length ? "FAIL" : "PASS",

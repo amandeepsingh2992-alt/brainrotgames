@@ -1,0 +1,79 @@
+name: Live Site End-to-End QA
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Live/preview URL to test"
+        required: false
+        default: "https://brainrotgames.me"
+        type: string
+      browser_all:
+        description: "Run browser gameplay QA against the entire catalogue"
+        required: false
+        default: false
+        type: boolean
+  deployment_status:
+  schedule:
+    - cron: "47 4 * * *"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-site-e2e-qa
+  cancel-in-progress: true
+
+jobs:
+  live-e2e:
+    if: >
+      github.event_name != 'deployment_status' ||
+      github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install Playwright
+        run: npm install --no-save --no-package-lock playwright@1.63.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Determine live URL
+        id: target
+        env:
+          DISPATCH_URL: ${{ inputs.base_url }}
+          DEPLOYMENT_URL: ${{ github.event.deployment_status.target_url }}
+        run: |
+          if [ "${{ github.event_name }}" = "deployment_status" ] && [ -n "$DEPLOYMENT_URL" ]; then
+            echo "base_url=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+          else
+            echo "base_url=$DISPATCH_URL" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run full live catalogue and browser QA
+        env:
+          BASE_URL: ${{ steps.target.outputs.base_url }}
+          BROWSER_ALL: ${{ inputs.browser_all }}
+          BROWSER_SAMPLE: 60
+          MAX_PAGES: 100
+          CONCURRENCY: 12
+          RETRIES: 2
+          LOAD_WAIT: 3500
+          GAME_TIMEOUT: 12000
+        run: node scripts/game-qa.mjs
+
+      - name: Upload live QA report
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: live-site-e2e-qa
+          path: qa-results/
+          retention-days: 30

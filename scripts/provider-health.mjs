@@ -5,7 +5,7 @@ const MAX_PAGES = Number(process.env.MAX_PAGES || 100);
 const CONCURRENCY = Number(process.env.CONCURRENCY || 25);
 const TIMEOUT_MS = Number(process.env.TIMEOUT_MS || 6000);
 const MIN_SCANNED = Number(process.env.MIN_SCANNED || 1000);
-const FILES = ["functions/api/games.js", "functions/api/game.js"];
+const FILES = ["functions/lib/gamepix.js"];
 const REPORT = "qa-results/provider-health.json";
 
 function extractItems(data) {

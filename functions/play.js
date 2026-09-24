@@ -1,9 +1,10 @@
+import { BLOCKED_GAME_IDS } from "./lib/gamepix.js";
+
 export async function onRequestGet(context) {
   const requestUrl = new URL(context.request.url);
   const gameId = String(requestUrl.searchParams.get("id") || "").trim();
   const requestedTitle = String(requestUrl.searchParams.get("title") || "").trim();
-  const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
-
+  
   const assetUrl = new URL(requestUrl);
   assetUrl.pathname = "/play.html";
   assetUrl.search = "";

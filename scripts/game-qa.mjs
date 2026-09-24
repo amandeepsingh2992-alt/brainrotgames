@@ -15,6 +15,7 @@ const BROWSER_IDS = new Set((process.env.BROWSER_IDS || "MI991T").split(",").map
 const OUTPUT_PREFIX = process.env.OUTPUT_PREFIX || "game-qa";
 const failures = [];
 
+function escapeHtml(value = "") { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("\"", "&quot;").replaceAll("\\'", "&#039;"); }
 function slug(value = "") {
   return String(value).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
@@ -74,7 +75,7 @@ async function checkSiteGame(game) {
       if (!playResponse.ok) throw new Error("play-http-" + playResponse.status);
       if (/^Game not found\s*$/im.test(playHtml)) throw new Error("play-returned-game-not-found");
       if (!playHtml.includes("id=\"game-content\"")) throw new Error("play-missing-game-content");
-      if (!playHtml.includes(String(data.title))) throw new Error("play-missing-resolved-title");
+      if (!playHtml.includes(escapeHtml(data.title))) throw new Error("play-missing-resolved-title");
       return { ...game, status: "pass", attempts: attempt, apiStatus: apiResponse.status, playStatus: playResponse.status };
     } catch (error) {
       if (attempt === RETRIES) return { ...game, status: "fail", attempts: attempt, reason: error.message };

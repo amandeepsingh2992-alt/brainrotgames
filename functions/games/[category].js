@@ -1,10 +1,11 @@
+import { BLOCKED_GAME_IDS } from "../lib/gamepix.js";
+
 const SITE_URL = "https://brainrotgames.me";
 const FEED = "https://feeds.gamepix.com/v2/json?sid=E158N&pagination=12&page=";
 const MAX_FEED_PAGES = 10;
 const BATCH = 5;
 const CACHE_TTL = 1800;
 // Confirmed broken by live-site QA/user reports. Keep this list conservative.
-const BLOCKED_GAME_IDS = new Set(["7RU2YF", "011ODI", "ANMAR4"]);
 
 const CURATED_CATEGORIES = new Set(["action","adventure","arcade","casual","puzzle","racing","sports","strategy","simulation","board","card","word"]);
 const CATEGORY_COPY = {

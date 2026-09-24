@@ -7,21 +7,16 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/provider-health.mjs"
-      - "scripts/game-qa.mjs"
-      - "scripts/site-structure-qa.mjs"
-      - "functions/api/games.js"
-      - "functions/api/game.js"
-      - "functions/games/**"
-      - "functions/guides/**"
-      - "functions/play.js"
-      - "functions/sitemap.xml.js"
-      - "index.html"
-      - "play.html"
-      - "styles.css"
-      - "app.js"
-      - "_routes.json"
-      - ".github/workflows/game-qa.yml"
+      - "**/*.html"
+      - "**/*.js"
+      - "**/*.mjs"
+      - "**/*.css"
+      - "**/*.json"
+      - "robots.txt"
+      - "ads.txt"
+      - "_headers"
+      - "_redirects"
+      - ".github/workflows/**"
 
 permissions:
   contents: write
@@ -31,18 +26,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  provider-health:
+  static-and-provider:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
 
-      - name: Run static site structure QA
-        run: node scripts/site-structure-qa.mjs
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Run A-Z source, HTML, routing and security QA
+        run: node scripts/full-site-qa.mjs
 
       - name: Run complete GamePix provider health scan
         run: node scripts/provider-health.mjs
@@ -57,7 +57,7 @@ jobs:
         uses: actions/upload-artifact@v5
         with:
           name: game-catalogue-health
-          path: qa-results/provider-health.json
+          path: qa-results/
           retention-days: 30
 
       - name: Commit only definite quarantines

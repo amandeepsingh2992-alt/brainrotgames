@@ -158,7 +158,6 @@ for (const file of htmlFiles) {
 
 const sitemapJs = await fs.readFile("functions/sitemap.xml.js", "utf8");
 assert(sitemapJs.includes("brainrot-games.html"), "sitemap", "Brainrot Games editorial page is missing from sitemap source");
-for (const id of ["7RU2YF", "011ODI", "ANMAR4"]) assert(gamepix.includes(id), "sitemap", "Blocked game " + id + " is missing from shared GamePix blocklist");
 
 const apiGame = await fs.readFile("functions/api/game.js", "utf8");
 const apiGames = await fs.readFile("functions/api/games.js", "utf8");
@@ -173,6 +172,7 @@ assert(playFn.includes("/api/game"), "play-route", "Play Function does not valid
 assert(playFn.includes("Game not found"), "play-route", "Play Function has no explicit not-found handling");
 assert(gamepix.includes("play.gamepix.com"), "gamepix", "Canonical GamePix embed construction is missing");
 assert(apiGames.includes("BLOCKED_GAME_IDS"), "catalogue", "Catalogue API blocklist is missing");
+for (const id of ["7RU2YF", "011ODI", "ANMAR4"]) assert(gamepix.includes(id), "sitemap", "Blocked game " + id + " is missing from shared GamePix blocklist");
 assert(gamepix.includes("export const BLOCKED_GAME_IDS"), "catalogue", "Shared GamePix blocklist is missing");
 for (const id of ["7RU2YF", "011ODI", "ANMAR4"]) {
   assert(gamepix.includes(id), "catalogue", "Shared blocklist is missing " + id);

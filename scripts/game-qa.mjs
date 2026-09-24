@@ -27,6 +27,8 @@ async function fetchWithTimeout(url, init = {}, timeout = 15000) {
   return fetch(url, { ...init, signal: AbortSignal.timeout(timeout) });
 }
 async function getGames() {
+  const blockSource = await fs.readFile("functions/lib/gamepix.js", "utf8");
+  const blocked = new Set([...blockSource.matchAll(/["']([^"']+)["']/g)].map(m => m[1]).filter(id => /^[A-Z0-9]{4,}$/.test(id)));
   const all = [];
   for (let page = START_PAGE; page <= END_PAGE; page++) {
     const response = await fetchWithTimeout(FEED + page, { headers: { Accept: "application/json" } }, 15000);
@@ -45,7 +47,7 @@ async function getGames() {
     namespace: String(g.namespace || ""),
     title: String(g.title ?? "Untitled game"),
     url: String(g.url || g.game_url || "")
-  })).filter(g => g.id && !seen.has(g.id) && seen.add(g.id));
+  })).filter(g => g.id && !blocked.has(g.id) && !seen.has(g.id) && seen.add(g.id));
 }
 
 async function checkSiteAccess() {

@@ -59,60 +59,20 @@ async function findGame(id, requestedTitle) {
     }
   } catch {}
 
-  // Fallback: use GamePix's documented large catalogue endpoint instead of
-  // scanning only the first 10 feed pages. This matters when a valid game
-  // appears deep in the catalogue but the single-game endpoint is incomplete.
-  const offsets = [0, 1000];
-  const results = await Promise.all(offsets.map(async offset => {
-    try {
-      const catalogueUrl = new URL("https://games.gamepix.com/games");
-      catalogueUrl.searchParams.set("sid", GAMEPIX_SID);
-      catalogueUrl.searchParams.set("limit", "1000");
-      catalogueUrl.searchParams.set("offset", String(offset));
-      const response = await fetch(catalogueUrl.toString(), {
-        headers: { Accept: "application/json" },
-        cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
-      });
-      if (!response.ok) return [];
-      const data = await response.json();
-      return Array.isArray(data?.items) ? data.items
-        : Array.isArray(data?.games) ? data.games
-        : Array.isArray(data?.data) ? data.data
-        : Array.isArray(data?.results) ? data.results
-        : Array.isArray(data) ? data : [];
-    } catch { return []; }
-  }));
-  for (const games of results) for (const raw of games) {
-    const rawId = String(raw?.id ?? raw?.namespace ?? "");
-    const rawTitle = slug(raw?.title || "");
-    if (BLOCKED_GAME_IDS.has(rawId)) continue;
-    if (rawId === id || rawTitle === targetTitle || String(raw?.namespace || "") === targetTitle) return normalizeGame(raw);
+  // Fast deterministic fallback. The catalogue feed already supplies the
+  // game's public title/ID, and GamePix embed namespaces are slug-based.
+  // Do not fan out into 2,000-game catalogue scans for a single request.
+  if (targetTitle) {
+    return normalizeGame({
+      id,
+      namespace: targetTitle,
+      title: requestedTitle,
+      description: `Play ${requestedTitle} online for free on BrainrotGames.`,
+      url: `https://play.gamepix.com/${encodeURIComponent(targetTitle)}/embed?sid=${encodeURIComponent(GAMEPIX_SID)}`
+    });
   }
   return null;
 }
-async function validateGamePixEmbed(embedUrl) {
-  if (!embedUrl) return false;
-  try {
-    const response = await fetch(embedUrl, {
-      method: "GET",
-      redirect: "follow",
-      headers: { Accept: "text/html,application/xhtml+xml" },
-      signal: AbortSignal.timeout(5000),
-      cf: { cacheTtl: CACHE_TTL, cacheEverything: true }
-    });
-    if (!response.ok) return false;
-    const finalUrl = new URL(response.url);
-    if (finalUrl.protocol !== "https:" || !finalUrl.hostname.endsWith("gamepix.com")) return false;
-    const xFrame = (response.headers.get("x-frame-options") || "").toLowerCase();
-    if (xFrame === "deny" || xFrame === "sameorigin") return false;
-    const csp = (response.headers.get("content-security-policy") || "").toLowerCase();
-    if (/frame-ancestors\s+[^;]*(?:'none'|\bself\b)/i.test(csp)) return false;
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export async function onRequestGet(context) {
   const url = new URL(context.request.url);
   const id = String(url.searchParams.get("id") || "").trim();
@@ -128,7 +88,7 @@ export async function onRequestGet(context) {
   if (cached) return cached;
 
   const game = await findGame(id, requestedTitle);
-  if (!game || !game.url || !(await validateGamePixEmbed(game.url))) {
+  if (!game || !game.url) {
     return json({ error: "Game not found or unavailable" }, 404, 60);
   }
 

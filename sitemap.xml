@@ -1,28 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <url>
-    <loc>https://brainrotgames.me/</loc>
-  </url>
-
-  <url>
-    <loc>https://brainrotgames.me/about.html</loc>
-  </url>
-
-  <url>
-    <loc>https://brainrotgames.me/contact.html</loc>
-  </url>
-
-  <url>
-    <loc>https://brainrotgames.me/privacy.html</loc>
-  </url>
-
-  <url>
-    <loc>https://brainrotgames.me/cookies.html</loc>
-  </url>
-
-  <url>
-    <loc>https://brainrotgames.me/terms.html</loc>
-  </url>
-
+  <url><loc>https://brainrotgames.me/</loc></url>
+  <url><loc>https://brainrotgames.me/brainrot-games.html</loc></url>
+  <url><loc>https://brainrotgames.me/games/</loc></url>
+  <url><loc>https://brainrotgames.me/guides/</loc></url>
+  <url><loc>https://brainrotgames.me/about.html</loc></url>
+  <url><loc>https://brainrotgames.me/contact.html</loc></url>
+  <url><loc>https://brainrotgames.me/privacy.html</loc></url>
+  <url><loc>https://brainrotgames.me/cookies.html</loc></url>
+  <url><loc>https://brainrotgames.me/terms.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-audio-and-video-troubleshooting.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-controls-guide.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-loading-errors.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-progress-and-saving.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-safety-and-privacy.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-game-session-planning.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-gamepads-and-controller-support.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-games-for-chromebook-and-low-end-devices.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-games-for-short-breaks.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/browser-gaming-accessibility.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/casual-arcade-puzzle-games.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/choosing-browser-games-by-device.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/finding-browser-games-without-downloads.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/how-browser-games-work.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/how-to-evaluate-a-browser-game.html</loc></url>
+  <url><loc>https://brainrotgames.me/guides/multiplayer-browser-gaming-tips.html</loc></url>
 </urlset>

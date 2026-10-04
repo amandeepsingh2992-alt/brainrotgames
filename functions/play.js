@@ -117,9 +117,10 @@ export async function onRequestGet(context) {
   html = replaceElementText(html, "what-to-expect", `This is a ${gameCategory.toLowerCase()} browser game. ${gameDescription} The exact controls, objectives and device behaviour can vary with the third-party version currently being served.`);
   html = replaceElementText(html, "gameplay-overview", gameplayOverview);
   html = replaceElementText(html, "game-fit", gameFit);
-  html = replaceSection(html, "How to Play", `<p>${escapeHtml(guidance.play)}</p><p>Start with one short round. Once you understand the core interaction, you can decide whether the game is a good fit for a longer session.</p>`);
-  html = replaceSection(html, "Controls", `<p>${escapeHtml(guidance.controls)}</p>`);
-  html = replaceSection(html, "Tips", `<ul>${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+  const firstSession = `<ol><li>Read the opening instructions and identify the objective.</li><li>Test one control and confirm that the game responds.</li><li>Play a short attempt, then decide whether the pace and input suit your device.</li></ol><p id="how-to-play">${escapeHtml(guidance.play)}</p><p><strong>For this ${escapeHtml(gameCategory.toLowerCase())} game:</strong> ${escapeHtml(guidance.tips[0])} The live game instructions remain the authority for exact rules and controls.</p>`;
+  html = replaceSection(html, "How to Play", firstSession);
+  html = replaceSection(html, "Controls", `<p id="controls-text">${escapeHtml(guidance.controls)}</p>`);
+  html = replaceSection(html, "Tips", `<ul id="game-tips">${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
   html = replaceSection(html, "Frequently Asked Questions", `<div class="faq-list">
   <details><summary>What is ${escapeHtml(gameTitle)}?</summary><p>${escapeHtml(gameDescription)}</p></details>
   <details><summary>How do I start playing?</summary><p>Open the game player on this page and follow the instructions shown inside the game. If controls do not respond, click inside the game area first.</p></details>

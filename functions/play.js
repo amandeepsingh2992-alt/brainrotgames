@@ -46,21 +46,22 @@ export async function onRequestGet(context) {
     return map[key] || { play: "Start by reading the game's objective and instructions, then play a short test round before trying to optimize your performance. Individual browser games can use very different mechanics even within the same category.", controls: "Controls vary by game and may use keyboard, mouse, touch or a combination. Click inside the game if keyboard input is not responding and check the in-game instructions.", tips: ["Learn the basic objective before experimenting with advanced actions.","Use a stable connection and current browser for the initial test.","If controls feel uncomfortable, try another device or game."] };
   }
   function guideLinks(category) {
+    const common = [["Browser game controls","/guides/browser-game-controls-guide.html"],["Choosing games by device","/guides/choosing-browser-games-by-device.html"]];
     const map = {
-      action: [["Short-break games","/guides/browser-games-for-short-breaks.html"],["Keyboard and mouse controls","/guides/keyboard-mouse-controls"]],
-      adventure: [["Choose a browser game","/guides/choose-browser-game"],["Mobile browser gaming","/guides/mobile-browser-gaming"]],
-      arcade: [["Short-break games","/guides/browser-games-for-short-breaks.html"],["Casual vs arcade vs puzzle","/guides/casual-arcade-puzzle-games.html"]],
-      casual: [["Session planning","/guides/browser-game-session-planning.html"],["Casual vs arcade vs puzzle","/guides/casual-arcade-puzzle-games.html"]],
-      puzzle: [["Puzzle strategy","/guides/puzzle-game-strategy"],["Choose a browser game","/guides/choose-browser-game"]],
-      racing: [["Racing tips","/guides/browser-racing-tips"],["Game controls","/guides/browser-game-controls-guide.html"]],
-      sports: [["Choose by device","/guides/choosing-browser-games-by-device.html"],["Choose a browser game","/guides/choose-browser-game"]],
-      strategy: [["Choose a browser game","/guides/choose-browser-game"],["Session planning","/guides/browser-game-session-planning.html"]],
-      simulation: [["Choose a browser game","/guides/choose-browser-game"],["Session planning","/guides/browser-game-session-planning.html"]],
-      board: [["Session planning","/guides/browser-game-session-planning.html"],["Choose a browser game","/guides/choose-browser-game"]],
-      card: [["Session planning","/guides/browser-game-session-planning.html"],["Choose a browser game","/guides/choose-browser-game"]],
-      word: [["Choose a browser game","/guides/choose-browser-game"],["Choose by device","/guides/choosing-browser-games-by-device.html"]]
+      action: [["Browser game controls","/guides/browser-game-controls-guide.html"],["Short-break browser games","/guides/browser-games-for-short-breaks.html"]],
+      adventure: [["Choosing games by device","/guides/choosing-browser-games-by-device.html"],["How browser games work","/guides/how-browser-games-work.html"]],
+      arcade: [["Short-break browser games","/guides/browser-games-for-short-breaks.html"],["Casual, arcade and puzzle games","/guides/casual-arcade-puzzle-games.html"]],
+      casual: [["Session planning","/guides/browser-game-session-planning.html"],["Casual, arcade and puzzle games","/guides/casual-arcade-puzzle-games.html"]],
+      puzzle: [["Browser game controls","/guides/browser-game-controls-guide.html"],["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"]],
+      racing: [["Browser game controls","/guides/browser-game-controls-guide.html"],["Choosing games by device","/guides/choosing-browser-games-by-device.html"]],
+      sports: [["Choosing games by device","/guides/choosing-browser-games-by-device.html"],["Session planning","/guides/browser-game-session-planning.html"]],
+      strategy: [["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"],["Session planning","/guides/browser-game-session-planning.html"]],
+      simulation: [["How browser games work","/guides/how-browser-games-work.html"],["Session planning","/guides/browser-game-session-planning.html"]],
+      board: [["Session planning","/guides/browser-game-session-planning.html"],["Choosing games by device","/guides/choosing-browser-games-by-device.html"]],
+      card: [["Session planning","/guides/browser-game-session-planning.html"],["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"]],
+      word: [["Browser game controls","/guides/browser-game-controls-guide.html"],["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"]]
     };
-    return map[slug(category)] || [["Browser game performance","/guides/browser-game-performance"],["Browser game controls","/guides/browser-game-controls-guide.html"]];
+    return map[slug(category)] || common;
   }
   function injectJsonLd(source, id, data) {
     const json = JSON.stringify(data).replace(/</g, "\\u003c");

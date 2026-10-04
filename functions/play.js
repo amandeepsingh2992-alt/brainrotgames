@@ -117,7 +117,6 @@ export async function onRequestGet(context) {
   html = replaceElementText(html, "what-to-expect", `This is a ${gameCategory.toLowerCase()} browser game. ${gameDescription} The exact controls, objectives and device behaviour can vary with the third-party version currently being served.`);
   html = replaceElementText(html, "gameplay-overview", gameplayOverview);
   html = replaceElementText(html, "game-fit", gameFit);
-  const firstSession = `<ol><li>Read the opening instructions and identify the objective.</li><li>Test one control and confirm that the game responds.</li><li>Play a short attempt, then decide whether the pace and input suit your device.</li></ol><p>${escapeHtml(guidance.play)}</p><p><strong>For this ${escapeHtml(gameCategory.toLowerCase())} game:</strong> ${escapeHtml(guidance.tips[0])} The live game instructions remain the authority for exact rules and controls.</p>`;
   const firstSession = `<ol><li>Read the opening instructions and identify the objective.</li><li>Test one control and confirm that the game responds.</li><li>Play a short attempt, then decide whether the pace and input suit your device.</li></ol><p id="how-to-play">${escapeHtml(guidance.play)}</p><p><strong>For this ${escapeHtml(gameCategory.toLowerCase())} game:</strong> ${escapeHtml(guidance.tips[0])} The live game instructions remain the authority for exact rules and controls.</p>`;
   html = replaceSection(html, "How to Play", firstSession);
   html = replaceSection(html, "Controls", `<p id="controls-text">${escapeHtml(guidance.controls)}</p>`);

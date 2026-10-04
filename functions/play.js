@@ -118,9 +118,10 @@ export async function onRequestGet(context) {
   html = replaceElementText(html, "gameplay-overview", gameplayOverview);
   html = replaceElementText(html, "game-fit", gameFit);
   const firstSession = `<ol><li>Read the opening instructions and identify the objective.</li><li>Test one control and confirm that the game responds.</li><li>Play a short attempt, then decide whether the pace and input suit your device.</li></ol><p>${escapeHtml(guidance.play)}</p><p><strong>For this ${escapeHtml(gameCategory.toLowerCase())} game:</strong> ${escapeHtml(guidance.tips[0])} The live game instructions remain the authority for exact rules and controls.</p>`;
+  const firstSession = `<ol><li>Read the opening instructions and identify the objective.</li><li>Test one control and confirm that the game responds.</li><li>Play a short attempt, then decide whether the pace and input suit your device.</li></ol><p id="how-to-play">${escapeHtml(guidance.play)}</p><p><strong>For this ${escapeHtml(gameCategory.toLowerCase())} game:</strong> ${escapeHtml(guidance.tips[0])} The live game instructions remain the authority for exact rules and controls.</p>`;
   html = replaceSection(html, "How to Play", firstSession);
-  html = replaceSection(html, "Controls", `<p>${escapeHtml(guidance.controls)}</p>`);
-  html = replaceSection(html, "Tips", `<ul>${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+  html = replaceSection(html, "Controls", `<p id="controls-text">${escapeHtml(guidance.controls)}</p>`);
+  html = replaceSection(html, "Tips", `<ul id="game-tips">${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
   html = replaceSection(html, "Frequently Asked Questions", `<div class="faq-list">
   <details><summary>What is ${escapeHtml(gameTitle)}?</summary><p>${escapeHtml(gameDescription)}</p></details>
   <details><summary>How do I start playing?</summary><p>Open the game player on this page and follow the instructions shown inside the game. If controls do not respond, click inside the game area first.</p></details>

@@ -7,13 +7,13 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <meta name="robots" content="noindex,follow">
+  <meta name="robots" content="index,follow">
 
   <meta name="theme-color" content="#070b14">
 
-  <title>Play Game - BrainrotGames</title>
+  <title>Play Free Browser Game | BrainrotGames</title>
 
-  <meta name="description" id="meta-description" content="Play free browser games online on BrainrotGames.">
+  <meta name="description" id="meta-description" content="Play a free browser game on BrainrotGames. Read the game overview, controls, device guidance and practical tips before playing.">
   <link rel="canonical" id="canonical-url" href="https://brainrotgames.me/play">
   <link rel="stylesheet" href="/styles.css">
 
@@ -46,12 +46,12 @@
           </section>
           <div class="game-info">
             <section><h2>About This Game</h2><p id="about-game">Loading game information…</p></section>
-            <section><h2>What to Expect</h2><p id="what-to-expect">This page provides a browser-playable version of the game together with practical information about the category, controls and device considerations.</p></section>
-            <section><h2>Gameplay Overview</h2><p id="gameplay-overview">The gameplay experience depends on the individual title. Read the objective and instructions inside the game before starting a longer session.</p></section>
-            <section><h2>Who Is This Game For?</h2><p id="game-fit">This game may suit players looking for a browser-based experience in this category. The best fit depends on your preferred pace, controls and available play time.</p></section>
-            <section><h2>How to Play</h2><p>Open the game above and follow the instructions shown inside the game. Controls and objectives can vary depending on the individual game.</p></section>
-            <section><h2>Controls</h2><p>Controls depend on the game. Many browser games use keyboard, mouse, touch controls, or a combination of these. Check the instructions provided within the game.</p></section>
-            <section><h2>Tips</h2><ul><li>Make sure your browser is up to date.</li><li>Use a stable internet connection for smoother gameplay.</li><li>If a game does not load correctly, try refreshing the page.</li><li>Some games may work better on desktop or mobile depending on their controls.</li></ul></section>
+            <section><h2>What to Expect</h2><p id="what-to-expect">This game page explains the title, its category, the main interaction and practical device considerations before you start.</p></section>
+            <section><h2>Gameplay Overview</h2><p id="gameplay-overview">Read the in-game objective first, then use the controls shown by the game. The experience can vary with the title and its third-party provider.</p></section>
+            <section><h2>Who Is This Game For?</h2><p id="game-fit">The best fit depends on the game category, pace, control scheme and the device you are using.</p></section>
+            <section><h2>How to Play</h2><p id="how-to-play">Open the game above, read its first instructions and complete the initial objective before committing to a longer session.</p></section>
+            <section><h2>Controls</h2><p id="controls-text">Controls depend on the game. Check the instructions inside the game and click or tap the game area if keyboard input is not immediately recognized.</p></section>
+            <section><h2>Tips for This Game</h2><ul id="game-tips"><li>Read the first in-game instructions before starting.</li><li>Match the control scheme to your device.</li><li>Use a stable connection and a current browser.</li><li>If the game behaves unexpectedly, refresh once before troubleshooting further.</li></ul></section>
             <section><h2>Game Details</h2><div class="game-details"><div class="detail-item"><span class="detail-label">Category</span><span class="detail-value" id="detail-category">—</span></div><div class="detail-item"><span class="detail-label">Technology</span><span class="detail-value">HTML5 / Web Browser</span></div><div class="detail-item"><span class="detail-label">Platform</span><span class="detail-value">Desktop and compatible mobile browsers</span></div><div class="detail-item"><span class="detail-label">Availability</span><span class="detail-value">Online</span></div><div class="detail-item"><span class="detail-label">Downloads</span><span class="detail-value">Not Required</span></div><div class="detail-item"><span class="detail-label">Game Provider</span><span class="detail-value">Third-party game distribution</span></div></div></section>
             <section><h2>Frequently Asked Questions</h2><div class="faq-list"><details><summary>Is this game free to play?</summary><p>BrainrotGames provides access to browser games that can be played online. Individual games may be provided by third-party publishers or distributors.</p></details><details><summary>Do I need to download the game?</summary><p>No separate game installation is required for supported browser games. The game loads through your web browser.</p></details><details><summary>Can I play this game on mobile?</summary><p>Mobile compatibility depends on the individual game and its controls.</p></details><details><summary>Why is the game not loading?</summary><p>Game availability depends on the third-party game provider. Check your internet connection and try refreshing the page if the game does not load.</p></details></div></section>
             <section class="related-games"><h2>Discover More Browser Games</h2><p>Looking for something else to play? <a href="/#games">Browse more games</a> across different categories.</p></section>
@@ -77,7 +77,7 @@ async function loadRelatedGames(){
    const res=await fetch("/api/games?page=1",{headers:{Accept:"application/json"}});
    if(!res.ok)throw new Error();
    const data=await res.json();
-   const items=(Array.isArray(data.items)?data.items:[]).filter(g=>String(g.id||"")!==currentId).slice(0,8);
+   const currentCategory=(window.__currentGameCategory||"").toLowerCase(); const all=Array.isArray(data.items)?data.items:[]; const same=all.filter(g=>String(g.id||"")!==currentId && currentCategory && String(g.category||"").toLowerCase()===currentCategory); const items=(same.length?same:all.filter(g=>String(g.id||"")!==currentId)).slice(0,8);
    if(!items.length){root.innerHTML='<div class="empty">No related games are available right now.</div>';return;}
    root.innerHTML=items.map(game=>{
      const title=esc(game.title||"Browser Game"),cat=esc(game.category||"Browser Game");
@@ -99,8 +99,50 @@ function cleanText(value=""){return String(value).replace(/\s+/g," ").trim();}
 function showError(message){gameContent.style.display="none";gameError.innerHTML=`<h1>Game Unavailable</h1><p>${escapeHtml(message)}</p><p><a href="/" style="color:#22d3c5;">Return to BrainrotGames</a></p>`;gameError.style.display="block";}
 function isSafeGameUrl(value){try{const url=new URL(value);return url.protocol==="https:"&&(url.hostname==="games.gamepix.com"||url.hostname.endsWith(".gamepix.com"));}catch{return false;}}
 function setInitialSeo(){if(!gameId)return;const initialTitle=requestedTitle?requestedTitle.split("-").map(word=>word.charAt(0).toUpperCase()+word.slice(1)).join(" "):"Game";document.title=`Play ${initialTitle} Free Online - BrainrotGames`;canonical.href=`https://brainrotgames.me/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(requestedTitle)}`;}
-function addStructuredData(title,description,category,image,canonicalUrl){document.getElementById("game-schema")?.remove();document.getElementById("breadcrumb-schema")?.remove();const gameSchema=document.createElement("script");gameSchema.type="application/ld+json";gameSchema.id="game-schema";const gameData={"@context":"https://schema.org","@type":"VideoGame",name:title,description,genre:category,gamePlatform:"Web Browser",url:canonicalUrl,isAccessibleForFree:true,publisher:{"@type":"Organization",name:"BrainrotGames",url:"https://brainrotgames.me/"}};if(image)gameData.image=image;gameSchema.textContent=JSON.stringify(gameData);document.head.appendChild(gameSchema);const breadcrumbSchema=document.createElement("script");breadcrumbSchema.type="application/ld+json";breadcrumbSchema.id="breadcrumb-schema";breadcrumbSchema.textContent=JSON.stringify({"@context":"https://schema.org","@type":"BreadcrumbList",itemListElement:[{"@type":"ListItem",position:1,name:"Home",item:"https://brainrotgames.me/"},{"@type":"ListItem",position:2,name:"Games",item:"https://brainrotgames.me/#games"},{"@type":"ListItem",position:3,name:title,item:canonicalUrl}]});document.head.appendChild(breadcrumbSchema);}
-async function loadGame(){if(!gameId||!requestedTitle){showError("No game was specified.");return;}try{const response=await fetch("/api/game?id="+encodeURIComponent(gameId)+"&title="+encodeURIComponent(requestedTitle),{headers:{Accept:"application/json"}});if(!response.ok)throw new Error("This game is unavailable.");const game=await response.json();if(!game?.title||!game?.url)throw new Error("This game is unavailable.");const title=cleanText(game.title),description=cleanText(game.description||`Play ${title} online for free on BrainrotGames.`),category=cleanText(game.category||"Browser Game"),gameUrl=cleanText(game.url),image=cleanText(game.image||"");if(!isSafeGameUrl(gameUrl))throw new Error("This game cannot be loaded because its provider URL is unavailable or unsupported.");titleEl.textContent=title;descriptionEl.textContent=description;aboutEl.textContent=description;categoryEl.textContent=category;detailCategoryEl.textContent=category;breadcrumbEl.textContent=title;document.title=`${title} - Play Free Online | BrainrotGames`;metaDescription.setAttribute("content",`Play ${title} online for free on BrainrotGames. ${description}`.replace(/\s+/g," ").trim().slice(0,160));const canonicalUrl=`https://brainrotgames.me/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(slug(title))}`;canonical.href=canonicalUrl;addStructuredData(title,description,category,image,canonicalUrl);frame.title=`${title} - BrainrotGames`;frame.src=gameUrl;frame.addEventListener("load",()=>{playerLoading.style.display="none";},{once:true});gameContent.style.display="block";gameError.style.display="none";}catch(error){console.error(error);showError(error.message||"We were unable to load this game.");}}
+function addStructuredData(title,description,category,image,canonicalUrl){document.getElementById("game-schema")?.remove();document.getElementById("breadcrumb-schema")?.remove();const gameSchema=document.createElement("script");gameSchema.type="application/ld+json";gameSchema.id="game-schema";const gameData={"@context":"https://schema.org","@type":"VideoGame",name:title,description,genre:category,gamePlatform:"Web Browser",url:canonicalUrl,isAccessibleForFree:true,publisher:{"@type":"Organization",name:"BrainrotGames",url:"https://brainrotgames.me/"},isPartOf:{"@type":"WebSite",name:"BrainrotGames",url:"https://brainrotgames.me/"}};if(image)gameData.image=image;gameSchema.textContent=JSON.stringify(gameData);document.head.appendChild(gameSchema);const breadcrumbSchema=document.createElement("script");breadcrumbSchema.type="application/ld+json";breadcrumbSchema.id="breadcrumb-schema";breadcrumbSchema.textContent=JSON.stringify({"@context":"https://schema.org","@type":"BreadcrumbList",itemListElement:[{"@type":"ListItem",position:1,name:"Home",item:"https://brainrotgames.me/"},{"@type":"ListItem",position:2,name:"Games",item:"https://brainrotgames.me/#games"},{"@type":"ListItem",position:3,name:title,item:canonicalUrl}]});document.head.appendChild(breadcrumbSchema);}
+function categoryGuidance(category,title){
+ const c=category.toLowerCase();
+ if(/puzzle|brain|match|memory|mahjong|word/.test(c)) return {
+   expect:`${title} is presented as a ${category} browser game, so the main experience is likely to reward observation, pattern recognition or deliberate choices rather than constant movement.`,
+   play:"Start by identifying the immediate objective and the rules for completing a move. Take a moment to understand the board or challenge before committing to a sequence of actions.",
+   controls:"Puzzle-style browser games commonly use mouse clicks or touch input. If the title uses keyboard shortcuts, follow the in-game instructions for the exact keys.",
+   tips:["Look for the simplest valid move before trying a complicated sequence.","On touch screens, tap deliberately and avoid rapid repeated taps when the game needs a precise selection.","If progress is unclear, read the game's first objective or tutorial again."]
+ };
+ if(/racing|driving|car|bike|drift/.test(c)) return {
+   expect:`${title} is a ${category} browser game where timing, movement and control precision are likely to matter more than long setup time.`,
+   play:"Learn acceleration, steering and braking in the opening section before chasing faster times. If the game has checkpoints or laps, use the first run to learn the route.",
+   controls:"Racing games often use keyboard arrows or WASD on desktop and may provide touch controls on mobile. Use the control instructions shown by the game.",
+   tips:["Learn the track before trying to optimize a run.","Use short, controlled inputs instead of holding a direction too long when precision matters.","If mobile controls feel cramped, try landscape orientation when the game supports it."]
+ };
+ if(/action|shooter|fighting|battle|survival|horror|escape|parkour|platformer|runner|ninja/.test(c)) return {
+   expect:`${title} is a ${category} browser game built around active interaction, timing or movement. Expect the opening moments to teach the core loop.`,
+   play:"Begin with the first objective and learn how movement, attacks, dodges or interactions work before attempting harder sections.",
+   controls:"These games commonly combine keyboard and mouse controls, while some provide touch buttons. Click or tap inside the game if input does not respond immediately.",
+   tips:["Learn one mechanic at a time instead of rushing the opening section.","Keep enough screen space free to see movement and hazards clearly.","If performance drops during action-heavy scenes, close unnecessary background tabs."]
+ };
+ if(/sports|soccer|basketball|cricket|golf|bowling/.test(c)) return {
+   expect:`${title} is a ${category} browser game focused on timing, positioning and repeatable actions.`,
+   play:"Use the first few attempts to learn timing and input sensitivity. Once the basic action feels predictable, focus on positioning and consistency.",
+   controls:"Sports browser games may use mouse, keyboard or touch. Follow the game's own control prompts because the exact input varies by title.",
+   tips:["Prioritize consistent timing over rapid inputs.","On touch devices, keep the game in the orientation that gives you the clearest view.","Use early attempts to learn the scoring or objective system."]
+ };
+ return {
+   expect:`${title} is a ${category} browser game. The exact objective and control scheme are defined by the individual game, so the first in-game instructions are the best guide to the current version.`,
+   play:"Start with the first objective shown by the game, learn the main interaction, and then decide whether the pacing and challenge suit the session you want.",
+   controls:"Controls can use mouse, keyboard, touch or a combination. Check the game's own instructions and click or tap the play area if input needs focus.",
+   tips:["Read the opening instructions before repeatedly retrying.","Use a current browser and stable connection.","If the game does not respond, refresh once and check whether the provider is currently available."]
+ };
+}
+function populateEditorial(title,description,category){
+ const g=categoryGuidance(category,title);
+ document.getElementById("what-to-expect").textContent=g.expect;
+ document.getElementById("gameplay-overview").textContent=g.play+" "+description;
+ document.getElementById("game-fit").textContent=`${title} may suit players who enjoy ${category.toLowerCase()} games and want to play directly in a browser. Consider the control scheme and your available screen size before choosing a longer session.`;
+ document.getElementById("how-to-play").textContent=g.play;
+ document.getElementById("controls-text").textContent=g.controls;
+ document.getElementById("game-tips").innerHTML=g.tips.map(t=>"<li>"+escapeHtml(t)+"</li>").join("");
+}
+async function loadGame(){if(!gameId||!requestedTitle){showError("No game was specified.");return;}try{const response=await fetch("/api/game?id="+encodeURIComponent(gameId)+"&title="+encodeURIComponent(requestedTitle),{headers:{Accept:"application/json"}});if(!response.ok)throw new Error("This game is unavailable.");const game=await response.json();if(!game?.title||!game?.url)throw new Error("This game is unavailable.");const title=cleanText(game.title),description=cleanText(game.description||`Play ${title} online for free on BrainrotGames.`),category=cleanText(game.category||"Browser Game"),gameUrl=cleanText(game.url),image=cleanText(game.image||"");if(!isSafeGameUrl(gameUrl))throw new Error("This game cannot be loaded because its provider URL is unavailable or unsupported.");titleEl.textContent=title;descriptionEl.textContent=description;aboutEl.textContent=description;categoryEl.textContent=category;detailCategoryEl.textContent=category;window.__currentGameCategory=category;populateEditorial(title,description,category);breadcrumbEl.textContent=title;document.title=`${title} - Play Free Online | BrainrotGames`;metaDescription.setAttribute("content",`Play ${title} online for free on BrainrotGames. ${description}`.replace(/\s+/g," ").trim().slice(0,160));const canonicalUrl=`https://brainrotgames.me/play?id=${encodeURIComponent(gameId)}&title=${encodeURIComponent(slug(title))}`;canonical.href=canonicalUrl;addStructuredData(title,description,category,image,canonicalUrl);frame.title=`${title} - BrainrotGames`;frame.src=gameUrl;frame.addEventListener("load",()=>{playerLoading.style.display="none";},{once:true});gameContent.style.display="block";gameError.style.display="none";}catch(error){console.error(error);showError(error.message||"We were unable to load this game.");}}
 setInitialSeo();loadGame();
 </script>
 </body>

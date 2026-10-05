@@ -45,7 +45,7 @@ export async function onRequestGet(context) {
     };
     return map[key] || { play: "Start by reading the game's objective and instructions, then play a short test round before trying to optimize your performance. Individual browser games can use very different mechanics even within the same category.", controls: "Controls vary by game and may use keyboard, mouse, touch or a combination. Click inside the game if keyboard input is not responding and check the in-game instructions.", tips: ["Learn the basic objective before experimenting with advanced actions.","Use a stable connection and current browser for the initial test.","If controls feel uncomfortable, try another device or game."] };
   }
-  function guideLinks(category) {
+  function guideLinks(category, title = "", description = "") {
     const common = [["Browser game controls","/guides/browser-game-controls-guide.html"],["Choosing games by device","/guides/choosing-browser-games-by-device.html"]];
     const map = {
       action: [["Browser game controls","/guides/browser-game-controls-guide.html"],["Short-break browser games","/guides/browser-games-for-short-breaks.html"]],
@@ -61,7 +61,36 @@ export async function onRequestGet(context) {
       card: [["Session planning","/guides/browser-game-session-planning.html"],["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"]],
       word: [["Browser game controls","/guides/browser-game-controls-guide.html"],["How to evaluate a browser game","/guides/how-to-evaluate-a-browser-game.html"]]
     };
+    const gameContext = `${title} ${description}`;
+    if (/brainrot|meme|skibidi|tung|italian/i.test(gameContext)) {
+      const brainrotMap = {
+        puzzle: [["Brainrot games for puzzle players","/guides/brainrot-games-for-puzzle-players"],["Brainrot merge-game planning","/guides/brainrot-merge-game-planning"]],
+        arcade: [["Brainrot games for action players","/guides/brainrot-games-for-action-players"],["Choose a Brainrot game by session length","/guides/choose-brainrot-game-by-session-length"]],
+        action: [["Brainrot action-game advice","/guides/brainrot-games-for-action-players"],["Brainrot obstacle-course tips","/guides/brainrot-obby-obstacle-course-tips"]],
+        casual: [["Find a relaxed Brainrot game","/guides/brainrot-games-for-relaxed-play"],["Choose a Brainrot game by session length","/guides/choose-brainrot-game-by-session-length"]],
+        racing: [["Brainrot runner timing guide","/guides/brainrot-runner-timing-guide"],["Brainrot games on mobile or desktop","/guides/brainrot-games-on-mobile-or-desktop"]]
+      };
+      return brainrotMap[slug(category)] || [["Brainrot first-session checklist","/guides/brainrot-game-first-session-checklist"],["How to compare Brainrot mechanics","/guides/compare-brainrot-game-mechanics"]];
+    }
     return map[slug(category)] || common;
+  }
+  function gamePageEditorial(title, category) {
+    const observations = {
+      action: "Watch how movement, the main action and hazards interact. Identify what ends an attempt, then change position or timing one step at a time instead of holding every input.",
+      adventure: "Notice how the game communicates objectives and which scene details respond to interaction. When progress stops, revisit the last clue or prompt before repeating an action.",
+      arcade: "Find the repeatable loop, scoring or survival condition and what causes a retry. Use a short run to learn timing before trying to improve a score.",
+      casual: "Check how a round begins and ends, whether the pace is calm or continuous and how clearly the game explains progress. Simple presentation can still hide a specific input pattern.",
+      puzzle: "Look at the board state, legal moves and any move limit or undo option. Before committing, ask what new options the move leaves open.",
+      racing: "Test steering response before pushing for speed. Notice whether braking, acceleration or lane choice matters and use one safe lap to learn how the game handles turns.",
+      sports: "Confirm the scoring rule, match length and which input performs the main action. A brief practice round can show whether timing or positioning matters most.",
+      strategy: "Find the win condition, available resources and whether actions are reversible. Make one low-risk choice and check how it changes the next decision.",
+      simulation: "Identify the system the game expects you to manage and change one variable at a time. Watch for feedback that connects a decision with a later result.",
+      board: "Confirm turn order, legal moves and the exact win condition. A familiar board-game name does not guarantee that every digital version uses the same rules.",
+      card: "Learn what ends a hand or match and which information is visible. Check whether the game explains card effects before building a longer strategy.",
+      word: "Read accepted-answer or spelling rules and any timer before submitting. Treat feedback as a clue about the game's vocabulary or matching rule."
+    };
+    const observation = observations[slug(category)] || "Identify the objective, the main input and the signal that shows progress. Check the game's opening instructions because individual titles can differ even when their categories match.";
+    return `<p><strong>${escapeHtml(title)}</strong> is listed as a ${escapeHtml(category.toLowerCase())} game. Use that label as a starting point, then confirm the actual rules in the live title.</p><h3>What to notice in this game</h3><p>${escapeHtml(observation)}</p><h3>A useful first playtest</h3><ol><li>State the objective in one sentence after reading the opening prompt.</li><li>Test one control and look for a clear response on screen.</li><li>Complete one short attempt and note what advanced progress or ended the round.</li></ol><h3>When the experience does not match the listing</h3><p>Third-party game descriptions and builds can change. If the objective, controls or device fit differ from what you expected, follow the instructions shown in the current game and reassess after one short attempt. If only this title fails while others work, report its name and page URL.</p>`;
   }
   function injectJsonLd(source, id, data) {
     const json = JSON.stringify(data).replace(/</g, "\\u003c");
@@ -98,7 +127,7 @@ export async function onRequestGet(context) {
 
   const seoTitle = `${gameTitle} - Play Free Online | BrainrotGames`;
   const guidance = categoryGuidance(gameCategory);
-  const relatedGuideMarkup = guideLinks(gameCategory).map(([label,url]) => `<a href="${url}">${escapeHtml(label)} →</a>`).join("");
+  const relatedGuideMarkup = guideLinks(gameCategory, gameTitle, gameDescription).map(([label,url]) => `<a href="${url}">${escapeHtml(label)} →</a>`).join("");
 
   const seoDescription = cleanText(`Play ${gameTitle} online for free on BrainrotGames. ${gameDescription}`).slice(0, 160);
   const canonicalUrl = new URL("/play", requestUrl.origin);
@@ -121,6 +150,7 @@ export async function onRequestGet(context) {
   html = replaceSection(html, "How to Play", firstSession);
   html = replaceSection(html, "Controls", `<p id="controls-text">${escapeHtml(guidance.controls)}</p>`);
   html = replaceSection(html, "Tips", `<ul id="game-tips">${guidance.tips.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`);
+  html = replaceSection(html, "How to Get More From This Game", gamePageEditorial(gameTitle, gameCategory));
   html = replaceSection(html, "Frequently Asked Questions", `<div class="faq-list">
   <details><summary>What is ${escapeHtml(gameTitle)}?</summary><p>${escapeHtml(gameDescription)}</p></details>
   <details><summary>How do I start playing?</summary><p>Open the game player on this page and follow the instructions shown inside the game. If controls do not respond, click inside the game area first.</p></details>

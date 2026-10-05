@@ -814,7 +814,15 @@ const EXPANDED_ARTICLES = {
 Object.assign(ARTICLES, EXPANDED_ARTICLES);
 
 export async function onRequestGet(context) {
-  const slugValue = slug(context.params.slug || "");
+  const requestedSlug = String(context.params.slug || "");
+  // Let Cloudflare serve authored static guide pages such as *.html instead of
+  // treating their file extension as part of a dynamic article slug.
+  if (/\.html$/i.test(requestedSlug)) {
+    const assetUrl = new URL(context.request.url);
+    const staticResponse = await context.env.ASSETS.fetch(assetUrl);
+    if (staticResponse.ok) return staticResponse;
+  }
+  const slugValue = slug(requestedSlug);
   const article = ARTICLES[slugValue];
   if (!article) return new Response("Guide not found", { status:404, headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"} });
   const canonical = `${SITE_URL}/guides/${slugValue}`;

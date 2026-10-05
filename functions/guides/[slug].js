@@ -824,7 +824,13 @@ export async function onRequestGet(context) {
   }
   const slugValue = slug(requestedSlug);
   const article = ARTICLES[slugValue];
-  if (!article) return new Response("Guide not found", { status:404, headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"} });
+  if (!article) {
+    const assetUrl = new URL(context.request.url);
+    assetUrl.pathname = `${assetUrl.pathname.replace(/\/$/, "")}.html`;
+    const staticResponse = await context.env.ASSETS.fetch(assetUrl);
+    if (staticResponse.ok) return staticResponse;
+    return new Response("Guide not found", { status:404, headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"} });
+  }
   const canonical = `${SITE_URL}/guides/${slugValue}`;
   const sections = article.sections.map(([heading, paragraphs]) => `<section><h2>${escapeHtml(heading)}</h2>${paragraphHtml(paragraphs)}</section>`).join("");
   const related = Object.entries(ARTICLES).filter(([key]) => key !== slugValue).sort((a,b) => Number(b[1].category === article.category) - Number(a[1].category === article.category)).slice(0,3).map(([key, value]) => `<li><a href="/guides/${key}">${escapeHtml(value.title)}</a></li>`).join("");

@@ -1,62 +1,29 @@
-import { BLOCKED_GAME_IDS } from "./lib/gamepix.js";
-
 const SITE_URL = "https://brainrotgames.me";
-// Provider IDs permanently excluded from the public sitemap after QA/provider checks.
-const CURATED_CATEGORIES = [
-  "action","adventure","arcade","casual","puzzle","racing",
-  "sports","strategy","simulation","board","card","word"
-];
 const GUIDE_SLUGS = [
-  "choose-browser-game","browser-game-performance","mobile-browser-gaming",
-  "puzzle-game-strategy","browser-racing-tips","keyboard-mouse-controls",
-  "two-player-browser-games","how-we-select-games",
-  "browser-games-for-short-breaks","casual-arcade-puzzle-games",
-  "multiplayer-browser-gaming-tips","browser-gaming-accessibility",
-  "browser-game-loading-errors","browser-game-controls-guide",
-  "choosing-browser-games-by-device","browser-game-session-planning",
-  "browser-game-safety-and-privacy","finding-browser-games-without-downloads",
-  "how-browser-games-work","how-to-evaluate-a-browser-game",
-  "browser-game-audio-and-video-troubleshooting","browser-games-for-chromebook-and-low-end-devices",
-  "browser-game-progress-and-saving","browser-gamepads-and-controller-support",
-  "brainrot-clicker-progression",
-  "brainrot-merge-game-planning",
-  "brainrot-obby-obstacle-course-tips",
-  "brainrot-runner-timing-guide",
-  "brainrot-escape-game-puzzle-approach",
-  "brainrot-multiplayer-session-guide",
-  "brainrot-games-on-mobile-or-desktop",
-  "choose-brainrot-game-by-session-length",
-  "compare-brainrot-game-mechanics",
-  "understand-brainrot-game-objectives",
-  "brainrot-game-first-session-checklist",
-  "brainrot-games-for-puzzle-players",
-  "brainrot-games-for-action-players",
-  "brainrot-games-for-relaxed-play",
-  "brainrot-game-progress-and-replay",
-  "brainrot-meme-characters-and-gameplay",
-  "browser-brainrot-vs-platform-games",
-  "evaluate-a-brainrot-game-page",
-  "brainrot-game-controls-troubleshooting",
-  "brainrot-game-safety-and-third-party-prompts",
+  "how-we-select-games",
+  "how-to-evaluate-a-browser-game.html",
+  "browser-game-loading-errors.html",
+  "browser-game-controls-guide.html",
+  "browser-game-progress-and-saving.html",
+  "browser-games-for-chromebook-and-low-end-devices.html",
+  "browser-gaming-accessibility.html",
+  "browser-game-safety-and-privacy.html",
+  "how-browser-games-work.html",
+  "browser-gamepads-and-controller-support.html",
+  "multiplayer-browser-gaming-tips.html"
 ];
 const STATIC_PAGES = [
-  "/", "/games", "/guides/", "/brainrot-games.html", "/about.html", "/contact.html",
+  "/", "/guides/", "/brainrot-games.html", "/about.html", "/contact.html",
   "/privacy.html", "/cookies.html", "/terms.html"
 ];
-function escapeXml(value = "") {
-  return String(value).replace(/[<>&'"]/g, char => ({"<":"&lt;",">":"&gt;","&":"&amp;","'":"&apos;","\"":"&quot;"}[char]));
-}
 export async function onRequestGet() {
   const urls = [
     ...STATIC_PAGES.map(path => `${SITE_URL}${path}`),
-    ...GUIDE_SLUGS.map(slug => `${SITE_URL}/guides/${slug}`),
-    ...CURATED_CATEGORIES.map(slug => `${SITE_URL}/games/${slug}`)
+    ...GUIDE_SLUGS.map(slug => `${SITE_URL}/guides/${slug}`)
   ];
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(url => `  <url>
-    <loc>${escapeXml(url)}</loc>
-  </url>`).join("\n")}
+${urls.map(url => `  <url><loc>${url}</loc></url>`).join("\n")}
 </urlset>`;
   return new Response(xml, {
     status: 200,

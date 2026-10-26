@@ -41,6 +41,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Check editorial scope and indexing safeguards
+        run: node scripts/site-structure-qa.mjs
+
       - name: Run A-Z source, HTML, routing and security QA
         run: node scripts/full-site-qa.mjs
 

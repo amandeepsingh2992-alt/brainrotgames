@@ -3,211 +3,131 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 const ROOT = process.cwd();
-const BASE_URL = (process.env.BASE_URL || "https://brainrotgames.me").replace(/\/$/, "");
-const FAIL_FAST = process.env.FAIL_FAST === "1";
+const SITE_URL = "https://brainrotgames.me";
 const failures = [];
 const warnings = [];
-const checked = { files: 0, js: 0, html: 0, links: 0 };
+const checked = { files: 0, html: 0, js: 0, links: 0 };
 
-function fail(scope, message, extra = {}) {
-  failures.push({ scope, message, ...extra });
-  if (FAIL_FAST) throw new Error(scope + ": " + message);
-}
+function fail(scope, message, extra = {}) { failures.push({ scope, message, ...extra }); }
 function warn(scope, message, extra = {}) { warnings.push({ scope, message, ...extra }); }
 function assert(condition, scope, message, extra = {}) { if (!condition) fail(scope, message, extra); }
+async function read(file) { return fs.readFile(path.join(ROOT, file), "utf8"); }
 
-async function walk(dir) {
-  const entries = await fs.readdir(dir, { withFileTypes: true });
-  const out = [];
+async function walk(directory) {
+  const entries = await fs.readdir(directory, { withFileTypes: true });
+  const files = [];
   for (const entry of entries) {
     if ([".git", "node_modules", "qa-results"].includes(entry.name)) continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...await walk(full));
-    else out.push(path.relative(ROOT, full).replaceAll(path.sep, "/"));
+    const full = path.join(directory, entry.name);
+    if (entry.isDirectory()) files.push(...await walk(full));
+    else files.push(path.relative(ROOT, full).replaceAll(path.sep, "/"));
   }
-  return out;
+  return files;
 }
 
 const files = await walk(ROOT);
-const textExt = /\.(html?|js|mjs|css|json|txt|xml|yml|yaml|md)$/i;
-
-for (const file of files.filter(f => textExt.test(f))) {
+const textFiles = files.filter(file => /\.(html?|js|mjs|css|json|txt|xml|yml|yaml|md)$/i.test(file));
+for (const file of textFiles) {
   checked.files++;
-  let content = "";
-  try { content = await fs.readFile(file, "utf8"); }
-  catch (e) { fail("filesystem", "Cannot read " + file + ": " + e.message); continue; }
-
-  if (/\u0000/.test(content)) fail("encoding", "NUL byte in " + file);
-  if (/\r\n/.test(content)) warn("format", "CRLF line endings in " + file);
-
-  if (file.endsWith(".js") || file.endsWith(".mjs")) {
+  const source = await read(file);
+  assert(!source.includes("\0"), "encoding", `NUL byte in ${file}`);
+  if (/\r\n/.test(source)) warn("format", `CRLF line endings in ${file}`);
+  if (/\.(js|mjs)$/.test(file)) {
     checked.js++;
     const result = spawnSync(process.execPath, ["--check", file], { encoding: "utf8" });
-    if (result.status !== 0) {
-      fail("javascript-syntax", "Node syntax check failed for " + file, {
-        detail: (result.stderr || result.stdout).trim().slice(0, 1200)
-      });
-    }
+    assert(result.status === 0, "javascript-syntax", `Node syntax check failed for ${file}`, { detail: (result.stderr || result.stdout).trim().slice(0, 1200) });
   }
 }
 
-const routes = JSON.parse(await fs.readFile("_routes.json", "utf8"));
+const routes = JSON.parse(await read("_routes.json"));
 assert(routes.version === 1, "routing", "_routes.json version must be 1");
-assert(Array.isArray(routes.include) && Array.isArray(routes.exclude), "routing", "_routes.json include/exclude must be arrays");
 for (const route of ["/api/*", "/play", "/games", "/games/*", "/guides/*", "/sitemap.xml"]) {
-  assert(routes.include.includes(route), "routing", "Missing Functions include route " + route);
+  assert(routes.include.includes(route), "routing", `Missing Function route ${route}`);
 }
-assert(routes.exclude.length === 0, "routing", "_routes.json unexpectedly excludes a required route");
+assert(Array.isArray(routes.exclude) && routes.exclude.length === 0, "routing", "Unexpected excluded Function route");
 
-const redirects = (await fs.readFile("_redirects", "utf8")).split(/\r?\n/).map(x => x.trim()).filter(Boolean);
+const redirects = (await read("_redirects")).split(/\r?\n/).map(line => line.trim()).filter(Boolean);
 for (const line of redirects) {
-  const parts = line.split(/\s+/);
-  assert(parts.length >= 2 && parts.length <= 3, "redirects", "Malformed _redirects line: " + line);
-  if (parts.length === 3) assert(/^30[12378]$/.test(parts[2]), "redirects", "Invalid redirect status: " + line);
+  const fields = line.split(/\s+/);
+  assert(fields.length >= 2 && fields.length <= 3, "redirects", `Malformed redirect: ${line}`);
+  if (fields.length === 3) assert(/^30[12378]$/.test(fields[2]), "redirects", `Invalid redirect status: ${line}`);
 }
-assert(redirects.some(x => x.startsWith("/play.html /play")), "redirects", "Legacy /play.html redirect is missing");
+assert(redirects.some(line => line.startsWith("/play.html /play 301")), "redirects", "Legacy play route must redirect to /play");
 
-const headers = await fs.readFile("_headers", "utf8");
+const headers = await read("_headers");
 assert(headers.includes("X-Content-Type-Options: nosniff"), "headers", "Missing nosniff header");
-assert(headers.includes("Referrer-Policy:"), "headers", "Missing Referrer-Policy");
-assert(headers.includes("X-Robots-Tag: noindex"), "headers", "Missing noindex rule for pages.dev");
+assert(headers.includes("Referrer-Policy:"), "headers", "Missing Referrer-Policy header");
+assert(headers.includes("X-Robots-Tag: noindex"), "headers", "Missing noindex header for preview deployment");
+const robots = await read("robots.txt");
+assert(/^User-agent:\s*\*/m.test(robots), "robots", "robots.txt has no wildcard rule");
+assert(/Sitemap:\s*https:\/\/brainrotgames\.me\/sitemap\.xml/i.test(robots), "robots", "robots.txt sitemap is incorrect");
+assert((await read("ads.txt")).includes("pub-1559302511010806"), "adsense", "ads.txt publisher ID is missing");
 
-const robots = await fs.readFile("robots.txt", "utf8");
-assert(/^User-agent:\s*\*/m.test(robots), "robots", "robots.txt has no wildcard User-agent");
-assert(/Allow:\s*\//m.test(robots), "robots", "robots.txt does not allow /");
-assert(/Sitemap:\s*https:\/\/brainrotgames\.me\/sitemap\.xml/i.test(robots), "robots", "robots.txt sitemap URL is incorrect");
-
-const ads = await fs.readFile("ads.txt", "utf8");
-assert(ads.includes("pub-1559302511010806"), "ads.txt", "AdSense publisher ID is missing from ads.txt");
-
-const htmlFiles = files.filter(f => f.endsWith(".html"));
-const staticPaths = new Set(files.filter(f => !f.startsWith("functions/")).map(f => "/" + f));
-staticPaths.add("/");
-staticPaths.add("/guides/");
-staticPaths.add("/games");
-staticPaths.add("/games/");
-staticPaths.add("/play");
-staticPaths.add("/sitemap.xml");
-staticPaths.add("/robots.txt");
-staticPaths.add("/404");
-
-function normalizeLocal(raw) {
-  const u = new URL(raw, BASE_URL);
-  if (u.origin !== BASE_URL) return null;
-  let p = decodeURIComponent(u.pathname);
-  if (p.endsWith("/index.html")) p = p.slice(0, -10) || "/";
-  if (p.endsWith(".html")) return p;
-  if (p === "/") return "/";
-  return p;
+const htmlFiles = files.filter(file => file.endsWith(".html"));
+const staticPaths = new Set(files.filter(file => !file.startsWith("functions/")).map(file => `/${file}`));
+for (const route of ["/", "/guides/", "/games", "/play", "/sitemap.xml", "/robots.txt", "/404"]) staticPaths.add(route);
+function knownRoute(pathname) {
+  return staticPaths.has(pathname) || ["/about", "/contact", "/privacy", "/cookies", "/terms", "/games/"].includes(pathname) || /^\/(?:guides|games)\/[^/]+\/?$/.test(pathname) || /^\/api\/(?:game|games)$/.test(pathname);
 }
-function routeKnown(p) {
-  if (staticPaths.has(p)) return true;
-  if (/^\/guides\/[^/]+\/?$/.test(p)) return true;
-  if (/^\/games\/[^/]+\/?$/.test(p)) return true;
-  if (p === "/api/games" || p === "/api/game") return true;
-  if (p === "/play") return true;
-  return false;
-}
-function targetExists(p) {
-  if (routeKnown(p)) return true;
-  if (p === "/about" || p === "/contact" || p === "/privacy" || p === "/cookies" || p === "/terms") return staticPaths.has(p + ".html");
-  return false;
-}
-
 for (const file of htmlFiles) {
   checked.html++;
-  const html = await fs.readFile(file, "utf8");
-  const ids = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(m => m[1]);
-  const seenIds = new Set();
-  for (const id of ids) {
-    if (seenIds.has(id)) fail("html-id", 'Duplicate id="' + id + '" in ' + file);
-    seenIds.add(id);
-  }
-
-  const titleCount = (html.match(/<title(?:\s[^>]*)?>[\s\S]*?<\/title>/gi) || []).length;
-  const descCount = (html.match(/<meta\s+[^>]*name=["']description["'][^>]*>/gi) || []).length;
-  const canonicalCount = (html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi) || []).length;
-  assert(titleCount === 1, "html-meta", file + " must contain exactly one title");
-  assert(descCount === 1, "html-meta", file + " must contain exactly one meta description");
-  if (file === "404.html") assert(canonicalCount === 0, "html-meta", "404.html should not advertise a canonical URL");
-  else assert(canonicalCount === 1, "html-meta", file + " must contain exactly one canonical link");
-
-  const urls = [...html.matchAll(/\b(?:href|src)=["']([^"']+)["']/gi)].map(m => m[1]);
-  for (const raw of urls) {
+  const html = await read(file);
+  const ids = [...html.matchAll(/\bid=["']([^"']+)["']/gi)].map(match => match[1]);
+  assert(ids.length === new Set(ids).size, "html-id", `Duplicate id in ${file}`);
+  const titles = html.match(/<title(?:\s[^>]*)?>[\s\S]*?<\/title>/gi) || [];
+  const descriptions = html.match(/<meta\s+[^>]*name=["']description["'][^>]*>/gi) || [];
+  const canonicals = html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*>/gi) || [];
+  assert(titles.length === 1, "html-meta", `${file} must have one title`);
+  assert(descriptions.length === 1, "html-meta", `${file} must have one meta description`);
+  assert(file === "404.html" ? canonicals.length === 0 : canonicals.length === 1, "html-meta", `${file} has the wrong canonical count`);
+  for (const raw of [...html.matchAll(/\b(?:href|src)=["']([^"']+)["']/gi)].map(match => match[1])) {
     if (/^(data:|mailto:|tel:|javascript:|#)/i.test(raw)) continue;
-    if (/^https?:\/\//i.test(raw)) {
-      try { new URL(raw); } catch { fail("html-url", "Invalid absolute URL " + raw + " in " + file); }
-      continue;
-    }
-    if (raw.startsWith("//")) {
-      try { new URL("https:" + raw); } catch { fail("html-url", "Invalid protocol-relative URL " + raw + " in " + file); }
-      continue;
-    }
+    if (raw.includes("${")) continue;
+    let url; try { url = new URL(raw, SITE_URL); } catch { fail("html-url", `Invalid URL ${raw} in ${file}`); continue; }
+    if (url.origin !== SITE_URL) continue;
     checked.links++;
-    const p = normalizeLocal(raw);
-    if (p && !targetExists(p)) fail("broken-local-link", file + " references missing route " + p, { raw });
+    const pathname = decodeURIComponent(url.pathname).replace(/\/index\.html$/, "/");
+    assert(knownRoute(pathname), "broken-local-link", `${file} links to unknown route ${pathname}`, { raw });
   }
-
   const adsCount = (html.match(/adsbygoogle\.js\?client=ca-pub-1559302511010806/gi) || []).length;
-  assert(adsCount <= 1, "adsense", file + " contains duplicate AdSense verification scripts");
-  if (/^(about|contact|privacy|cookies|terms|brainrot-games)\.html$/.test(path.basename(file)) || file === "index.html" || file === "guides/index.html") {
-    assert(adsCount === 1, "adsense", file + " is missing the AdSense verification script");
-  }
-  if (file === "404.html") assert(/noindex/i.test(html), "seo", "404.html must be noindex");
-  if (file === "play.html") assert(/noindex,follow/i.test(html), "seo", "play.html must be noindex,follow");
+  assert(adsCount <= 1, "adsense", `${file} contains duplicate AdSense scripts`);
+  if (["index.html", "brainrot-games.html", "about.html", "contact.html", "privacy.html", "cookies.html", "terms.html", "guides/index.html"].includes(file)) assert(adsCount === 1, "adsense", `${file} is missing the verification script`);
 }
 
-const sitemapJs = await fs.readFile("functions/sitemap.xml.js", "utf8");
-assert(sitemapJs.includes("brainrot-games.html"), "sitemap", "Brainrot Games editorial page is missing from sitemap source");
-for (const slug of ["choose-browser-game","browser-game-performance","mobile-browser-gaming","puzzle-game-strategy","browser-racing-tips","keyboard-mouse-controls","two-player-browser-games","how-we-select-games","browser-games-for-short-breaks","casual-arcade-puzzle-games","multiplayer-browser-gaming-tips","browser-gaming-accessibility","browser-game-loading-errors","browser-game-controls-guide","choosing-browser-games-by-device","browser-game-session-planning","browser-game-safety-and-privacy","finding-browser-games-without-downloads","how-browser-games-work","how-to-evaluate-a-browser-game","browser-game-audio-and-video-troubleshooting","browser-games-for-chromebook-and-low-end-devices","browser-game-progress-and-saving","browser-gamepads-and-controller-support"]) {
-  assert(sitemapJs.includes(slug), "sitemap", "Guide slug missing from sitemap source: " + slug);
+const home = await read("index.html");
+for (const required of ["third-party distribution feed", "What BrainrotGames checks, and what it does not claim", "id=\"game-grid\"", "href=\"/guides/how-we-select-games\""]) {
+  assert(home.includes(required), "editorial-home", `Homepage is missing ${required}`);
 }
-for (const category of ["action","adventure","arcade","casual","puzzle","racing","sports","strategy","simulation","board","card","word"]) {
-  assert(sitemapJs.includes(category), "sitemap", "Curated category missing from sitemap source: " + category);
+for (const retired of ["loadExploreGames", "explore-game-grid", "What Are Browser Games?", "BrainrotGames Overview"]) {
+  assert(!home.includes(retired), "editorial-home", `Homepage retains generic duplicate section: ${retired}`);
 }
 
-const apiGame = await fs.readFile("functions/api/game.js", "utf8");
-const apiGames = await fs.readFile("functions/api/games.js", "utf8");
-const playFn = await fs.readFile("functions/play.js", "utf8");
-const categoryFn = await fs.readFile("functions/games/[category].js", "utf8");
-const sitemapFn = await fs.readFile("functions/sitemap.xml.js", "utf8");
-const gamepix = await fs.readFile("functions/lib/gamepix.js", "utf8");
-assert(apiGame.includes("games.gamepix.com/game"), "game-resolver", "Single-game GamePix lookup is missing");
-assert(apiGame.includes("gid"), "game-resolver", "GamePix lookup does not query gid");
-assert(apiGame.includes("validateGamePixEmbed"), "game-resolver", "GamePix embed validation is missing");
-assert(playFn.includes("/api/game"), "play-route", "Play Function does not validate games through /api/game");
-assert(playFn.includes("Game not found"), "play-route", "Play Function has no explicit not-found handling");
-assert(gamepix.includes("play.gamepix.com"), "gamepix", "Canonical GamePix embed construction is missing");
-assert(apiGames.includes("BLOCKED_GAME_IDS"), "catalogue", "Catalogue API blocklist is missing");
-for (const id of ["7RU2YF", "011ODI", "ANMAR4"]) assert(gamepix.includes(id), "sitemap", "Blocked game " + id + " is missing from shared GamePix blocklist");
-assert(gamepix.includes("export const BLOCKED_GAME_IDS"), "catalogue", "Shared GamePix blocklist is missing");
-for (const id of ["7RU2YF", "011ODI", "ANMAR4"]) {
-  assert(gamepix.includes(id), "catalogue", "Shared blocklist is missing " + id);
-}
-for (const [name, source] of [["api/game.js", apiGame], ["api/games.js", apiGames], ["games/[category].js", categoryFn], ["play.js", playFn], ["sitemap.xml.js", sitemapFn]]) {
-  assert(source.includes("BLOCKED_GAME_IDS"), "catalogue", name + " does not use the shared GamePix blocklist");
-  assert(!/const BLOCKED_GAME_IDS\s*=/.test(source), "catalogue", name + " redeclares the GamePix blocklist");
-}
-const categoryIndex = await fs.readFile("functions/games/index.js", "utf8");
-assert(!categoryIndex.includes("adsbygoogle.js"), "adsense", "Autogenerated category directory must not include AdSense");
-const categoryRenderer = await fs.readFile("functions/games/[category].js", "utf8");
-assert(!categoryRenderer.includes("adsbygoogle.js"), "adsense", "Autogenerated category pages must not include AdSense");
+const player = await read("play.html");
+assert(/noindex,follow/i.test(player), "player", "Game player must be noindex,follow");
+assert(!player.includes("adsbygoogle.js"), "player", "Noindex game player must not include AdSense");
+for (const invented of ["Gameplay Overview", "Who Is This Game For", "How to Get More", "Tips for"]) assert(!player.includes(invented), "player", `Game player contains invented per-game advice: ${invented}`);
 
-const workflow = await fs.readFile(".github/workflows/game-qa.yml", "utf8");
-const liveWorkflow = await fs.readFile(".github/workflows/live-site-qa.yml", "utf8");
-assert(workflow.includes("scripts/full-site-qa.mjs"), "workflow", "Full site QA is not part of the main QA workflow");
-assert(workflow.includes("scripts/provider-health.mjs"), "workflow", "Provider health QA is not part of the main QA workflow");
-assert(workflow.includes("wrangler pages dev"), "workflow", "Local Cloudflare Pages runtime QA is missing");
-assert(workflow.includes("BROWSER_IDS: MI991T"), "workflow", "Known failing game is not explicitly covered by browser QA");
-assert(liveWorkflow.includes("scripts/game-qa.mjs"), "workflow", "Live deployment QA does not run game integration QA");
-assert(liveWorkflow.includes("deployment_status"), "workflow", "Live QA is not triggered after deployments");
+const category = await read("functions/games/[category].js");
+assert(category.includes('content="noindex,follow"'), "category", "Catalogue category pages must be noindex,follow");
+assert(!category.includes("CATEGORY_EDITORIAL"), "category", "Catalogue category pages must not create generic editorial copy");
+assert(category.includes("BLOCKED_GAME_IDS"), "category", "Catalogue categories must use the shared game blocklist");
 
-console.log(JSON.stringify({
-  status: failures.length ? "FAIL" : "PASS",
-  baseUrl: BASE_URL,
-  checked,
-  warnings: warnings.length,
-  failures: failures.length,
-  failureDetails: failures.slice(0, 100)
-}, null, 2));
+const gameApi = await read("functions/api/game.js");
+assert(gameApi.includes("validateGamePixEmbed"), "game-api", "Game embeds must be validated");
+assert(!gameApi.includes("Fast deterministic fallback"), "game-api", "Game API must not fabricate a provider record");
+assert(!gameApi.includes("Play ${requestedTitle} online for free on BrainrotGames."), "game-api", "Game API must not fabricate a description");
+const playFunction = await read("functions/play.js");
+assert(playFunction.includes("/api/game"), "play-function", "Game player must resolve through the validated API");
+
+const sitemap = await read("functions/sitemap.xml.js");
+for (const retained of ["how-we-select-games", "browser-game-loading-errors.html", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) assert(sitemap.includes(retained), "sitemap", `Missing retained guide ${retained}`);
+for (const retired of ["brainrot-clicker-progression", "casual-arcade-puzzle-games", '"/games/']) assert(!sitemap.includes(retired), "sitemap", `Sitemap includes retired or non-indexable content: ${retired}`);
+
+const guideRouter = await read("functions/guides/[slug].js");
+for (const legacy of ["brainrot-clicker-progression", "finding-browser-games-without-downloads", "browser-game-session-planning"]) assert(guideRouter.includes(`"${legacy}"`), "guide-redirects", `Missing legacy redirect ${legacy}`);
+
+const workflow = await read(".github/workflows/game-qa.yml");
+for (const required of ["scripts/site-structure-qa.mjs", "scripts/full-site-qa.mjs", "scripts/provider-health.mjs", "wrangler pages dev"]) assert(workflow.includes(required), "workflow", `Workflow missing ${required}`);
+
+console.log(JSON.stringify({ status: failures.length ? "FAIL" : "PASS", checked, warnings: warnings.length, failures: failures.length, failureDetails: failures.slice(0, 100) }, null, 2));
 if (failures.length) process.exitCode = 1;

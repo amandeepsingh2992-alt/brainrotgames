@@ -1,4 +1,4 @@
-import { GAMEPIX_FEED_BASE, GAMEPIX_SID, BLOCKED_GAME_IDS, slug, normalizeGame } from "../lib/gamepix.js";
+import { GAMEPIX_SID, BLOCKED_GAME_IDS, slug, normalizeGame } from "../lib/gamepix.js";
 
 const CACHE_TTL = 900;
 
@@ -13,8 +13,6 @@ function json(data, status = 200, cache = CACHE_TTL) {
 }
 
 async function findGame(id, requestedTitle) {
-  const targetTitle = slug(requestedTitle);
-
   // Resolve the exact GamePix ID first. The catalogue feed is paginated and a
   // valid game can move beyond the first few pages as the provider catalogue
   // changes. GamePix exposes a single-game endpoint specifically for this case.
@@ -59,18 +57,8 @@ async function findGame(id, requestedTitle) {
     }
   } catch {}
 
-  // Fast deterministic fallback. The catalogue feed already supplies the
-  // game's public title/ID, and GamePix embed namespaces are slug-based.
-  // Do not fan out into 2,000-game catalogue scans for a single request.
-  if (targetTitle) {
-    return normalizeGame({
-      id,
-      namespace: targetTitle,
-      title: requestedTitle,
-      description: `Play ${requestedTitle} online for free on BrainrotGames.`,
-      url: `https://play.gamepix.com/${encodeURIComponent(targetTitle)}/embed?sid=${encodeURIComponent(GAMEPIX_SID)}`
-    });
-  }
+  // Do not invent a fallback listing from a URL slug. If the distributor does
+  // not return a verifiable record, this page should be unavailable.
   return null;
 }
 async function validateGamePixEmbed(embedUrl) {
@@ -119,7 +107,7 @@ export async function onRequestGet(context) {
     id: String(game.id),
     namespace: String(game.namespace || slug(game.title)),
     title: String(game.title || requestedTitle),
-    description: String(game.description || `Play ${game.title || requestedTitle} online for free on BrainrotGames.`),
+    description: String(game.description || "The distributor did not supply a description for this title."),
     category: String(game.category || "Other"),
     image: String(game.image || ""),
     url: game.url

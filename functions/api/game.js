@@ -57,8 +57,19 @@ async function findGame(id, requestedTitle) {
     }
   } catch {}
 
-  // Do not invent a fallback listing from a URL slug. If the distributor does
-  // not return a verifiable record, this page should be unavailable.
+  // Some valid feed entries are not returned by GamePix's single-game endpoint.
+  // Keep those games playable, but do not manufacture game-specific editorial
+  // copy. The caller validates the resulting GamePix embed before returning it.
+  const namespace = slug(requestedTitle);
+  if (namespace) {
+    return normalizeGame({
+      id,
+      namespace,
+      title: requestedTitle,
+      description: "Game information is supplied by the third-party distributor. Check the in-game instructions for current controls and rules.",
+      url: `https://play.gamepix.com/${encodeURIComponent(namespace)}/embed?sid=${encodeURIComponent(GAMEPIX_SID)}`
+    });
+  }
   return null;
 }
 async function validateGamePixEmbed(embedUrl) {

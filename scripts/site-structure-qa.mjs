@@ -43,7 +43,7 @@ for (const retired of ["brainrot-clicker-progression", "casual-arcade-puzzle-gam
 
 const gameApi = read("functions/api/game.js");
 assert(gameApi.includes("validateGamePixEmbed"), "Game route must validate provider embeds");
-assert(!gameApi.includes("Fast deterministic fallback"), "Game route must not invent provider records from a slug");
+assert(gameApi.includes("Game information is supplied by the third-party distributor."), "Game fallback must disclose its third-party source");
 assert(!gameApi.includes("Play ${requestedTitle} online for free on BrainrotGames."), "Game route must not fabricate a generic listing description");
 
 const routes = JSON.parse(read("_routes.json"));

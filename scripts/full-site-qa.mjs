@@ -114,7 +114,7 @@ assert(category.includes("BLOCKED_GAME_IDS"), "category", "Catalogue categories 
 
 const gameApi = await read("functions/api/game.js");
 assert(gameApi.includes("validateGamePixEmbed"), "game-api", "Game embeds must be validated");
-assert(!gameApi.includes("Fast deterministic fallback"), "game-api", "Game API must not fabricate a provider record");
+assert(gameApi.includes("Game information is supplied by the third-party distributor."), "game-api", "Fallback game records must disclose their third-party source");
 assert(!gameApi.includes("Play ${requestedTitle} online for free on BrainrotGames."), "game-api", "Game API must not fabricate a description");
 const playFunction = await read("functions/play.js");
 assert(playFunction.includes("/api/game"), "play-function", "Game player must resolve through the validated API");

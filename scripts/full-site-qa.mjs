@@ -91,7 +91,7 @@ for (const file of htmlFiles) {
   }
   const adsCount = (html.match(/adsbygoogle\.js\?client=ca-pub-1559302511010806/gi) || []).length;
   assert(adsCount <= 1, "adsense", `${file} contains duplicate AdSense scripts`);
-  if (["index.html", "brainrot-games.html", "about.html", "contact.html", "privacy.html", "cookies.html", "terms.html", "guides/index.html"].includes(file)) assert(adsCount === 1, "adsense", `${file} is missing the verification script`);
+  if (["index.html", "brainrot-games.html", "about.html", "contact.html", "feedback.html", "privacy.html", "cookies.html", "terms.html", "guides/index.html"].includes(file)) assert(adsCount === 1, "adsense", `${file} is missing the verification script`);
 }
 
 const home = await read("index.html");
@@ -101,6 +101,12 @@ for (const required of ["third-party distribution feed", "What BrainrotGames che
 for (const retired of ["loadExploreGames", "explore-game-grid", "What Are Browser Games?", "BrainrotGames Overview"]) {
   assert(!home.includes(retired), "editorial-home", `Homepage retains generic duplicate section: ${retired}`);
 }
+
+const feedback = await read("feedback.html");
+for (const required of ["Help us fix a specific problem", "A report template you can copy", "Do not include sensitive data", "do not manufacture comments"]) {
+  assert(feedback.includes(required), "feedback", `Feedback page is missing ${required}`);
+}
+assert(!feedback.includes("★★★★★"), "feedback", "Feedback page must not contain invented ratings");
 
 const player = await read("play.html");
 assert(/noindex,follow/i.test(player), "player", "Game player must be noindex,follow");
@@ -120,7 +126,7 @@ const playFunction = await read("functions/play.js");
 assert(playFunction.includes("/api/game"), "play-function", "Game player must resolve through the validated API");
 
 const sitemap = await read("functions/sitemap.xml.js");
-for (const retained of ["how-we-select-games", "browser-game-loading-errors.html", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) assert(sitemap.includes(retained), "sitemap", `Missing retained guide ${retained}`);
+for (const retained of ["feedback.html", "how-we-select-games", "browser-game-loading-errors.html", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) assert(sitemap.includes(retained), "sitemap", `Missing retained guide ${retained}`);
 for (const retired of ["brainrot-clicker-progression", "casual-arcade-puzzle-games", '"/games/']) assert(!sitemap.includes(retired), "sitemap", `Sitemap includes retired or non-indexable content: ${retired}`);
 
 const guideRouter = await read("functions/guides/[slug].js");

@@ -13,6 +13,11 @@ for (const required of [
 for (const retired of ["What Are Browser Games?", "BrainrotGames Overview", "loadExploreGames", "explore-game-grid"]) {
   assert(!home.includes(retired), `Homepage still contains retired duplicate-content material: ${retired}`);
 }
+const feedback = read("feedback.html");
+for (const required of ["Help us fix a specific problem", "A report template you can copy", "Do not include sensitive data", "do not manufacture comments"]) {
+  assert(feedback.includes(required), `Feedback page is missing the required reader-facing element: ${required}`);
+}
+assert(!feedback.includes("★★★★★"), "Feedback page must not contain invented ratings");
 
 const play = read("play.html");
 assert(/noindex,follow/i.test(play), "Game player must remain noindex,follow");
@@ -34,7 +39,7 @@ for (const slug of ["brainrot-clicker-progression", "finding-browser-games-witho
 assert(guideRouter.includes('slugValue !== "how-we-select-games"'), "Guide router must keep the one catalogue-transparency page");
 
 const sitemap = read("functions/sitemap.xml.js");
-for (const path of ["brainrot-games.html", "how-we-select-games", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) {
+for (const path of ["brainrot-games.html", "feedback.html", "how-we-select-games", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) {
   assert(sitemap.includes(path), `Sitemap is missing retained editorial URL: ${path}`);
 }
 for (const retired of ["brainrot-clicker-progression", "casual-arcade-puzzle-games", '"/games/']) {

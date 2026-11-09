@@ -13,7 +13,7 @@ const GUIDE_SLUGS = [
   "multiplayer-browser-gaming-tips.html"
 ];
 const STATIC_PAGES = [
-  "/", "/guides/", "/brainrot-games.html", "/about.html", "/contact.html", "/feedback.html",
+  "/", "/editor-picks.html", "/guides/", "/brainrot-games.html", "/about.html", "/contact.html", "/feedback.html",
   "/privacy.html", "/cookies.html", "/terms.html"
 ];
 export async function onRequestGet() {

@@ -18,6 +18,10 @@ for (const required of ["Help us fix a specific problem", "A report template you
   assert(feedback.includes(required), `Feedback page is missing the required reader-facing element: ${required}`);
 }
 assert(!feedback.includes("★★★★★"), "Feedback page must not contain invented ratings");
+const editorPicks = read("editor-picks.html");
+for (const required of ["A small starting list, with useful first-session questions", "How these selections are made", "Prism Match 3D", "We do not convert that launch check into an invented score"]) {
+  assert(editorPicks.includes(required), `Editor picks page is missing the required reader-facing element: ${required}`);
+}
 
 const play = read("play.html");
 assert(/noindex,follow/i.test(play), "Game player must remain noindex,follow");
@@ -39,7 +43,7 @@ for (const slug of ["brainrot-clicker-progression", "finding-browser-games-witho
 assert(guideRouter.includes('slugValue !== "how-we-select-games"'), "Guide router must keep the one catalogue-transparency page");
 
 const sitemap = read("functions/sitemap.xml.js");
-for (const path of ["brainrot-games.html", "feedback.html", "how-we-select-games", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) {
+for (const path of ["brainrot-games.html", "editor-picks.html", "feedback.html", "how-we-select-games", "browser-game-controls-guide.html", "browser-game-safety-and-privacy.html"]) {
   assert(sitemap.includes(path), `Sitemap is missing retained editorial URL: ${path}`);
 }
 for (const retired of ["brainrot-clicker-progression", "casual-arcade-puzzle-games", '"/games/']) {

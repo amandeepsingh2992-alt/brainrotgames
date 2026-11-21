@@ -6,6 +6,15 @@
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
   Pragma: no-cache
 
+/games/*
+  X-Robots-Tag: noindex, follow
+
+/play*
+  X-Robots-Tag: noindex, follow
+
+/guides/*
+  X-Robots-Tag: noindex, follow
+
 # Keep the Cloudflare Pages project hostname out of search results.
 https://:project.pages.dev/*
   X-Robots-Tag: noindex
